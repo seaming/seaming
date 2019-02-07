@@ -175,6 +175,10 @@
     }
 
     function frequency_to_rgb(freq) {
+      if (freq == 0) {
+        return '#ffffff';
+      }
+
       var r, g, b = 0;
       freq *= 100;
 
