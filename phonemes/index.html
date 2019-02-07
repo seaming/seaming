@@ -219,13 +219,11 @@
         for (var i = 0; i < phono_elements.length; i++) {
           var p = phono_elements[i].querySelector('span').innerText;
 
-          if (p in phoneme_data) {
-            var freq = absolute_probability(p);
-            phono_elements[i].style.backgroundColor = frequency_to_rgb(freq);
-            // freq * 100 => percentage => 2dp
-            phono_elements[i].querySelector('.info-popup').innerHTML = (
-              (Math.round(freq * 10000) / 100) + '% of languages have /' + p + '/');
-          }
+          var freq = absolute_probability(p);
+          phono_elements[i].style.backgroundColor = frequency_to_rgb(freq);
+          // freq * 100 => percentage => 2dp
+          phono_elements[i].querySelector('.info-popup').innerHTML = (
+            (Math.round(freq * 10000) / 100) + '% of languages have /' + p + '/');
         }
       } else {
         el.classList += ' selected';
@@ -254,12 +252,10 @@
       var popup = document.createElement('div');
       popup.classList = 'info-popup hidden';
 
-      if (p in phoneme_data) {
-        var freq = absolute_probability(p);
-        el.style.backgroundColor = frequency_to_rgb(freq);
-        // freq * 100 => percentage => 2dp
-        popup.innerHTML = (Math.round(freq * 10000) / 100) + '% of languages have /' + p + '/';
-      }
+      var freq = absolute_probability(p);
+      el.style.backgroundColor = frequency_to_rgb(freq);
+      // freq * 100 => percentage => 2dp
+      popup.innerHTML = (Math.round(freq * 10000) / 100) + '% of languages have /' + p + '/';
 
       el.appendChild(popup);
 
