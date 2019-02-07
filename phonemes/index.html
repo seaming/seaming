@@ -1,0 +1,436 @@
+<html>
+
+<head>
+  <title>Phonology Analyser</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif,
+        "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      color: #292929;
+    }
+
+    .body {
+      margin: 100px 15%;
+    }
+
+    .center {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .form-label {
+      padding-bottom: 10px;
+      color: #959595;
+      font-size: small;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 6px 10px;
+      margin: 4px 0;
+      font-size: 95%;
+      border-radius: 4px;
+      border: 1px solid #e6e6e6;
+    }
+
+    button {
+      width: 100%;
+      margin: 4px 0;
+      padding: 6px 0px;
+      border-radius: 4px;
+      border: 1px solid #e6e6e6;
+      font-size: 90%;
+      -webkit-transition: background-color 0.05s ease-in-out;
+      transition: background-color 0.05s ease-in-out;
+    }
+
+    button:hover {
+      border: 1px solid lightgrey;
+      background-color: #e6e6e6;
+    }
+
+    table {
+      border-collapse: collapse;
+    }
+
+    table th,
+    table td {
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .phono-element {
+      display: inline-flex;
+      width: 40px;
+      height: 40px;
+      margin: 2px;
+      border: 1px solid #bfbfbf;
+      border-radius: 4px;
+    }
+
+    .phono-element span {
+      margin: auto;
+    }
+  </style>
+
+  <script type="text/javascript" src="phonemes.js"></script>
+
+  <script>
+    var languages;
+    var phonologies;
+    var frequencies;
+
+    // var data_loaded = false;
+    // async function load_data() {
+    //   languages = JSON.parse(languages);
+    //   phonologies = JSON.parse(phonologies);
+    //   frequencies = JSON.parse(frequencies);
+    //   data_loaded = true;
+    // }
+
+    const moas = ['bilabial', 'labiodental', 'dental', 'alveolar', 'alveolopalatal', 'retroflex', 'palatal', 'velar', 'uvular', 'pharyngeal', 'glottal'];
+    const poas = ['nasal', 'stop', 'affricate', 'fricative', 'trill-flap', 'lateral-approximant', 'approximant'];
+    const heights = ['close', 'near-close', 'close-mid', 'mid', 'open-mid', 'near-open', 'open'];
+    const depths = ['front', 'near-front', 'central', 'near-back', 'back'];
+    const features = [...moas, ...poas, ...heights, ...depths]
+
+    const feature_map = {
+      'bilabial': 'm p b ɸ β pɸ bβ ʙ',
+      'labiodental': 'ɱ f v ʋ pf bv',
+      'dental': 'θ ð tθ dð',
+      'alveolar': 'n t d s z ʃ ʒ ts dz tʃ dʒ ɬ ɮ r ɾ ɹ ɺ l ɫ',
+      'alveolopalatal': 'ȶ ȡ ȵ ɕ ʑ tɕ dʑ ȶɕ ȡʑ ȴ',
+      'retroflex': 'ʈ ɖ ɳ ʂ ʐ ʈʂ ɖʐ ɽ ɻ ɭ',
+      'palatal': 'c ɟ ɲ ç ʝ cç ɟʝ ʎ j ɥ',
+      'velar': 'k g ŋ x ɣ kx gɣ w ʍ ɰ ʟ',
+      'uvular': 'q ɢ ɴ χ qχ ɢʁ ʁ ʀ',
+      'pharyngeal': 'ħ ʕ',
+      'glottal': 'ʔ h ɦ',
+      'nasal': 'm ɱ n ȵ ɳ ɲ ŋ ɴ',
+      'stop': 'p b t d ȶ ȡ ʈ ɖ c ɟ k g q ɢ ʔ',
+      'fricative': 'ɸ β f v θ ð s z ɬ ɮ ʃ ʒ ɕ ʑ ʂ ʐ ç ʝ x ɣ χ ʁ ħ ʕ h ɦ',
+      'affricate': 'pɸ bβ pf bv tθ dð ts dz tʃ dʒ tɕ dʑ ȶɕ ȡʑ ʈʂ ɖʐ cç ɟʝ kx gɣ qχ ɢʁ',
+      'trill-flap': 'ʙ r ɾ ɺ ɽ ʀ',
+      'lateral-approximant': 'l ɫ ȴ ɭ ʎ ʟ',
+      'approximant': 'ʋ ɹ ɻ j ɥ w ʍ ɰ',
+
+      'close': 'i y ɨ ʉ ɯ u',
+      'near-close': 'ɪ ʏ ʊ',
+      'close-mid': 'e ø ɘ ɵ ɤ o',
+      'mid': 'ə',
+      'open-mid': 'ɛ œ ɜ ɞ ʌ ɔ',
+      'near-open': 'æ ɐ',
+      'open': 'a ɶ ä ɑ ɒ',
+      'front': 'i y e ø ɛ œ æ a ɶ',
+      'near-front': 'ɪ ʏ',
+      'central': 'ɨ ʉ ɘ ɵ ə ɜ ɞ ɐ ä',
+      'near-back': 'ʊ',
+      'back': 'ɯ u ɤ o ʌ ɔ ɑ ɒ'
+    }
+
+    Object.keys(feature_map).map(function (k, _) {
+      feature_map[k] = feature_map[k].split(/\s+/);
+    });
+
+    function remove_diacritics(s) {
+      return s.replace(/[ː̆:ʰʲʷ̩̯̥̬̪̺̝̞̟̠̃̈̚ˑ‿̴̹̜̤̰̼̘̙̻͉̽͜͡ʼ͇̊ˤˀᵊʱˡⁿᵐᵑˢʳ˞ᵗˠ̏̀̄́̋̂̌᷅᷄᷈]/g, '');
+    }
+
+    function process_phoneme(p) {
+      return p.replace('\'', 'ʼ').replace('ɡ', 'g').replace('ǃ', '!').replace('ǀ', '|').replace('ː', ':');
+    }
+
+    function frequency_to_rgb(freq) {
+      var r, g, b = 0;
+      freq *= 100;
+
+      if (freq < 50) {
+        r = 255;
+        g = Math.round(5.1 * freq);
+      } else {
+        g = 255;
+        r = Math.round(510 - 5.10 * freq);
+      }
+
+      var h = r * 0x10000 + g * 0x100 + b * 0x1;
+      return '#' + ('000000' + h.toString(16)).slice(-6);
+    }
+
+    function create_phono_element(e, p) {
+      var el = document.createElement('div');
+      el.classList = 'phono-element';
+
+      if (p in frequencies) {
+        if (p in frequencies[p]) {
+          el.style.backgroundColor = frequency_to_rgb(frequencies[p][p]);
+        }
+      }
+
+      var el2 = document.createElement('span');
+      el2.innerHTML = p;
+      el.appendChild(el2);
+      e.appendChild(el);
+    }
+
+    function parse_phono() {
+      document.getElementById('consonant-phono-table').classList = '';
+      document.getElementById('vowel-phono-table').classList = '';
+
+      var phono = document.getElementById('phono-input')
+        .value.split(/\s+/)
+        .filter(function (it, i, ar) { return (ar.indexOf(it) === i) && (it.trim().length > 0); })
+        .map(p => process_phoneme(p));
+
+      var qualities = phono.map(p => remove_diacritics(p));
+
+      Array.from(document.querySelectorAll('th,td')).map(function (e) {
+        e.classList = Array.from(e.classList).filter(c => c != "hidden").join(' ');
+        if (e.tagName == "TD") { e.innerHTML = ''; }
+      });
+
+      for (var i = 0; i < features.length; i++) {
+        if (!qualities.some(r => feature_map[features[i]].indexOf(r) >= 0)) {
+          // phono doesnt contain a given feature
+          Array.from(document.getElementsByClassName(features[i])).map(e => e.classList = e.classList + ' hidden');
+        }
+      }
+
+      var unknowns = [];
+      for (var i = 0; i < phono.length; i++) {
+        var phoneme = phono[i];
+        var quality = remove_diacritics(phono[i]);
+
+        var moa = moas.map(x => feature_map[x].includes(quality)).indexOf(true);
+        var moa = moa >= 0 ? moas[moa] : null;
+
+        var poa = poas.map(x => feature_map[x].includes(quality)).indexOf(true);
+        var poa = poa >= 0 ? poas[poa] : null;
+
+        var height = heights.map(x => feature_map[x].includes(quality)).indexOf(true);
+        var height = height >= 0 ? heights[height] : null;
+
+        var depth = depths.map(x => feature_map[x].includes(quality)).indexOf(true);
+        var depth = depth >= 0 ? depths[depth] : null;
+
+        var c = null;
+        if (moa && poa) {
+          c = moa + ' ' + poa;
+        } else if (depth && height) {
+          c = depth + ' ' + height;
+        }
+
+        if (c) {
+          Array.from(document.getElementsByClassName(c)).map(e => create_phono_element(e, phoneme));
+        } else {
+          unknowns.push(phoneme);
+        }
+      }
+
+      var unknowns_p = document.getElementById('unknown-phonemes');
+      while (unknowns_p.firstChild) {
+        unknowns_p.removeChild(unknowns_p.firstChild);
+      }
+
+      unknowns.map(p => create_phono_element(unknowns_p, p));
+    }
+  </script>
+</head>
+
+<body>
+  <div class="body">
+    <div class="form center">
+      <div>
+        <div class="form-label">Input phonemes, whitespace delimited</div>
+        <textarea id="phono-input" cols=100 rows=3></textarea>
+        <button onclick="parse_phono();">Analyse</button>
+      </div>
+    </div>
+
+    <br><br><br><br>
+
+    <div class="center">
+      <div class="phonotable">
+        <div class="center">
+          <table id="consonant-phono-table" class="hidden">
+            <tbody>
+              <tr>
+                <td class="bilabial nasal"></td>
+                <td class="labiodental nasal"></td>
+                <td class="dental nasal"></td>
+                <td class="alveolar nasal"></td>
+                <td class="alveolopalatal nasal"></td>
+                <td class="retroflex nasal"></td>
+                <td class="palatal nasal"></td>
+                <td class="velar nasal"></td>
+                <td class="uvular nasal"></td>
+                <td class="pharyngeal nasal"></td>
+                <td class="glottal nasal"></td>
+              </tr>
+              <tr>
+                <td class="bilabial stop"></td>
+                <td class="labiodental stop"></td>
+                <td class="dental stop"></td>
+                <td class="alveolar stop"></td>
+                <td class="alveolopalatal stop"></td>
+                <td class="retroflex stop"></td>
+                <td class="palatal stop"></td>
+                <td class="velar stop"></td>
+                <td class="uvular stop"></td>
+                <td class="pharyngeal stop"></td>
+                <td class="glottal stop"></td>
+              </tr>
+              <tr>
+                <td class="bilabial fricative"></td>
+                <td class="labiodental fricative"></td>
+                <td class="dental fricative"></td>
+                <td class="alveolar fricative"></td>
+                <td class="alveolopalatal fricative"></td>
+                <td class="retroflex fricative"></td>
+                <td class="palatal fricative"></td>
+                <td class="velar fricative"></td>
+                <td class="uvular fricative"></td>
+                <td class="pharyngeal fricative"></td>
+                <td class="glottal fricative"></td>
+              </tr>
+              <tr>
+                <td class="bilabial affricate"></td>
+                <td class="labiodental affricate"></td>
+                <td class="dental affricate"></td>
+                <td class="alveolar affricate"></td>
+                <td class="alveolopalatal affricate"></td>
+                <td class="retroflex affricate"></td>
+                <td class="palatal affricate"></td>
+                <td class="velar affricate"></td>
+                <td class="uvular affricate"></td>
+                <td class="pharyngeal affricate"></td>
+                <td class="glottal affricate"></td>
+              </tr>
+              <tr>
+                <td class="bilabial trill-flap"></td>
+                <td class="labiodental trill-flap"></td>
+                <td class="dental trill-flap"></td>
+                <td class="alveolar trill-flap"></td>
+                <td class="alveolopalatal trill-flap"></td>
+                <td class="retroflex trill-flap"></td>
+                <td class="palatal trill-flap"></td>
+                <td class="velar trill-flap"></td>
+                <td class="uvular trill-flap"></td>
+                <td class="pharyngeal trill-flap"></td>
+                <td class="glottal trill-flap"></td>
+              </tr>
+              <tr>
+                <td class="bilabial lateral-approximant"></td>
+                <td class="labiodental lateral-approximant"></td>
+                <td class="dental lateral-approximant"></td>
+                <td class="alveolar lateral-approximant"></td>
+                <td class="alveolopalatal lateral-approximant"></td>
+                <td class="retroflex lateral-approximant"></td>
+                <td class="palatal lateral-approximant"></td>
+                <td class="velar lateral-approximant"></td>
+                <td class="uvular lateral-approximant"></td>
+                <td class="pharyngeal lateral-approximant"></td>
+                <td class="glottal lateral-approximant"></td>
+              </tr>
+              <tr>
+                <td class="bilabial approximant"></td>
+                <td class="labiodental approximant"></td>
+                <td class="dental approximant"></td>
+                <td class="alveolar approximant"></td>
+                <td class="alveolopalatal approximant"></td>
+                <td class="retroflex approximant"></td>
+                <td class="palatal approximant"></td>
+                <td class="velar approximant"></td>
+                <td class="uvular approximant"></td>
+                <td class="pharyngeal approximant"></td>
+                <td class="glottal approximant"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <br>
+        <div class="center">
+          <table id="vowel-phono-table" class="hidden">
+            <tbody>
+              <tr>
+                <td class="front close"></td>
+                <td class="near-front close"></td>
+                <td class="central close"></td>
+                <td class="near-back close"></td>
+                <td class="back close"></td>
+              </tr>
+              <tr>
+                <td class="front near-close"></td>
+                <td class="near-front near-close"></td>
+                <td class="central near-close"></td>
+                <td class="near-back near-close"></td>
+                <td class="back near-close"></td>
+              </tr>
+              <tr>
+                <td class="front close-mid"></td>
+                <td class="near-front close-mid"></td>
+                <td class="central close-mid"></td>
+                <td class="near-back close-mid"></td>
+                <td class="back close-mid"></td>
+              </tr>
+              <tr>
+                <td class="front mid"></td>
+                <td class="near-front mid"></td>
+                <td class="central mid"></td>
+                <td class="near-back mid"></td>
+                <td class="back mid"></td>
+              </tr>
+              <tr>
+                <td class="front open-mid"></td>
+                <td class="near-front open-mid"></td>
+                <td class="central open-mid"></td>
+                <td class="near-back open-mid"></td>
+                <td class="back open-mid"></td>
+              </tr>
+              <tr>
+                <td class="front near-open"></td>
+                <td class="near-front near-open"></td>
+                <td class="central near-open"></td>
+                <td class="near-back near-open"></td>
+                <td class="back near-open"></td>
+              </tr>
+              <tr>
+                <td class="front open"></td>
+                <td class="near-front open"></td>
+                <td class="central open"></td>
+                <td class="near-back open"></td>
+                <td class="back open"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <br>
+        <p id="unknown-phonemes"></p>
+
+      </div>
+    </div>
+
+    <!-- 
+      TODO
+
+      - risk of different phonemes (absolute and relative)
+      - suggested extension phonemes
+      - comparisons to other languages
+     -->
+
+  </div>
+</body>
+
+</html>
