@@ -19,6 +19,18 @@
       margin: 100px 15%;
     }
 
+    .footer {
+      width: 100%;
+      margin-top: 50px;
+      text-align: center;
+      font-size: x-small;
+      color: #959595;
+    }
+
+    .footer a {
+      color: #959595;
+    }
+
     .center {
       display: flex;
       align-items: center;
@@ -174,8 +186,9 @@
         r = Math.round(510 - 5.10 * freq);
       }
 
+
       var h = r * 0x10000 + g * 0x100 + b * 0x1;
-      return '#' + h.toString(16) + '78';
+      return '#' + ('000000' + h.toString(16)).slice(-6) + '78';
     }
 
     function absolute_probability(p) {
@@ -505,13 +518,9 @@
       </div>
     </div>
 
-    <!-- 
-      TODO
-
-      - risk of different phonemes (absolute and relative)
-      - suggested extension phonemes
-      - comparisons to other languages
-     -->
+    <div class="footer">
+      Phoneme frequency data from <a href="https://phoible.org">PHOIBLE</a>.
+    </div>
 
   </div>
 </body>
