@@ -285,8 +285,8 @@
 
       var phono = document.getElementById('phono-input')
         .value.split(/\s+/)
-        .filter(function (it, i, ar) { return (ar.indexOf(it) === i) && (it.trim().length > 0); })
-        .map(p => process_phoneme(p));
+        .map(p => process_phoneme(p))
+        .filter(function (it, i, ar) { return (ar.indexOf(it) === i) && (it.trim().length > 0); });
 
       var qualities = phono.map(p => remove_diacritics(p));
 
