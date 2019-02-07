@@ -42,6 +42,7 @@
       font-size: 95%;
       border-radius: 4px;
       border: 1px solid #e6e6e6;
+      resize: vertical;
     }
 
     button {
@@ -72,6 +73,7 @@
 
     .phono-element {
       display: inline-flex;
+      position: relative;
       width: 40px;
       height: 40px;
       margin: 2px;
@@ -82,22 +84,31 @@
     .phono-element span {
       margin: auto;
     }
+
+    .phono-element.selected {
+      border: 2px solid blue;
+    }
+
+    .info-popup {
+      position: absolute;
+      top: -40px;
+      left: -70px;
+      width: 180px;
+      z-index: 1000;
+      padding: 10px 8px;
+      color: #f5f5f5;
+      background: #292929;
+      border-radius: 4px;
+      font-size: x-small;
+      text-align: center;
+    }
   </style>
 
+  <script type="text/javascript" src="lang_data.js"></script>
   <script type="text/javascript" src="phonemes.js"></script>
 
   <script>
-    var languages;
-    var phonologies;
-    var frequencies;
-
-    // var data_loaded = false;
-    // async function load_data() {
-    //   languages = JSON.parse(languages);
-    //   phonologies = JSON.parse(phonologies);
-    //   frequencies = JSON.parse(frequencies);
-    //   data_loaded = true;
-    // }
+    const NUM_LANGS = Object.keys(languages).map(k => languages[k].length).reduce((a, b) => a + b, 0);
 
     const moas = ['bilabial', 'labiodental', 'dental', 'alveolar', 'alveolopalatal', 'retroflex', 'palatal', 'velar', 'uvular', 'pharyngeal', 'glottal'];
     const poas = ['nasal', 'stop', 'affricate', 'fricative', 'trill-flap', 'lateral-approximant', 'approximant'];
@@ -164,18 +175,90 @@
       }
 
       var h = r * 0x10000 + g * 0x100 + b * 0x1;
-      return '#' + ('000000' + h.toString(16)).slice(-6);
+      return '#' + h.toString(16) + '78';
+    }
+
+    function absolute_probability(p) {
+      if (p in phoneme_data) {
+        return phoneme_data[p].length / NUM_LANGS;
+      }
+      return 0;
+    }
+
+    function intersection(s1, s2) {
+      return s1.filter(v => s2.indexOf(v) !== -1);
+    }
+
+    function relative_probability(p1, p2) {
+      // probability of p1 given p2
+      if (p1 in phoneme_data && p2 in phoneme_data) {
+        return intersection(phoneme_data[p1], phoneme_data[p2]).length / phoneme_data[p2].length;
+      }
+      return 0;
+    }
+
+    function recolour_probabilities(el, phoneme) {
+      var phono_elements = document.querySelectorAll('.phono-element');
+
+      if (el.classList.contains('selected')) {
+        el.classList = Array.from(el.classList).filter(c => c != "selected").join(' ');
+
+        for (var i = 0; i < phono_elements.length; i++) {
+          var p = phono_elements[i].querySelector('span').innerText;
+
+          if (p in phoneme_data) {
+            var freq = absolute_probability(p);
+            phono_elements[i].style.backgroundColor = frequency_to_rgb(freq);
+            // freq * 100 => percentage => 2dp
+            phono_elements[i].querySelector('.info-popup').innerHTML = (
+              (Math.round(freq * 10000) / 100) + '% of languages have /' + p + '/');
+          }
+        }
+      } else {
+        el.classList += ' selected';
+        el.style.backgroundColor = '#ffffff';
+        el.querySelector('.info-popup').classList += ' hidden';
+
+        for (var i = 0; i < phono_elements.length; i++) {
+          if (el != phono_elements[i]) {
+            phono_elements[i].classList = Array.from(phono_elements[i].classList).filter(c => c != "selected").join(' ');
+
+            var ph2 = phono_elements[i].querySelector('span').innerText;
+            var freq = relative_probability(ph2, phoneme);
+            phono_elements[i].style.backgroundColor = frequency_to_rgb(freq);
+
+            phono_elements[i].querySelector('.info-popup').innerHTML = (
+              (Math.round(freq * 10000) / 100) + '% of languages that have<br>/' + phoneme + '/ have /' + ph2 + '/');
+          }
+        }
+      }
     }
 
     function create_phono_element(e, p) {
       var el = document.createElement('div');
       el.classList = 'phono-element';
 
-      if (p in frequencies) {
-        if (p in frequencies[p]) {
-          el.style.backgroundColor = frequency_to_rgb(frequencies[p][p]);
-        }
+      var popup = document.createElement('div');
+      popup.classList = 'info-popup hidden';
+
+      if (p in phoneme_data) {
+        var freq = absolute_probability(p);
+        el.style.backgroundColor = frequency_to_rgb(freq);
+        // freq * 100 => percentage => 2dp
+        popup.innerHTML = (Math.round(freq * 10000) / 100) + '% of languages have /' + p + '/';
       }
+
+      el.appendChild(popup);
+
+      el.onmouseenter = function () {
+        popup.classList = 'info-popup';
+      };
+
+      el.onmouseleave = function () {
+        popup.classList = 'info-popup hidden';
+      };
+
+      el.onclick = function () { recolour_probabilities(el, p); };
 
       var el2 = document.createElement('span');
       el2.innerHTML = p;
