@@ -392,9 +392,9 @@
           })
         });
       })).then(ph => {
-        var ph = ph.filter(x => x != 0).slice(0, 10);
+        var ph = ph.filter(x => x != 0);
         ph.sort((a, b) => b[2] - a[2]);
-        ph.map(lang_info => {
+        ph.slice(0, 10).map(lang_info => {
           var div = document.createElement('div');
           div.classList = 'similar-language';
 
