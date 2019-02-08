@@ -41,6 +41,10 @@
       display: none;
     }
 
+    .form {
+      margin-bottom: 30px;
+    }
+
     .form-label {
       padding-bottom: 10px;
       color: #959595;
@@ -81,6 +85,10 @@
     table td {
       text-align: center;
       vertical-align: middle;
+    }
+
+    [id$="phono-table"] {
+      margin-bottom: 20px;
     }
 
     .phono-element {
@@ -320,8 +328,8 @@
     }
 
     function parse_phono() {
-      document.getElementById('consonant-phono-table').classList = '';
-      document.getElementById('vowel-phono-table').classList = '';
+      document.getElementById('consonant-phono-table').classList = 'hidden center';
+      document.getElementById('vowel-phono-table').classList = 'hidden center';
 
       var phono = document.getElementById('phono-input')
         .value.split(/\s+/)
@@ -362,8 +370,12 @@
         var c = null;
         if (moa && poa) {
           c = moa + ' ' + poa;
+          console.log(moa, poa);
+          document.getElementById('consonant-phono-table').classList = 'center';
         } else if (depth && height) {
           c = depth + ' ' + height;
+          console.log(depth, height);
+          document.getElementById('vowel-phono-table').classList = 'center';
         }
 
         if (c) {
@@ -400,7 +412,7 @@
 
           var sim = Math.round(lang_info[2] * 10000) / 100;
           div.innerHTML = lang_info[1] + ' (' + lang_info[0] + ')'
-          
+
           var phonology_text = document.createElement('span');
           phonology_text.classList = 'phonology-text';
           phonology_text.innerHTML = '/' + lang_info[3].join(' ') + '/';
@@ -428,12 +440,10 @@
       </div>
     </div>
 
-    <br><br><br><br>
-
     <div class="center">
       <div class="phonotable">
-        <div class="center">
-          <table id="consonant-phono-table" class="hidden">
+        <div id="consonant-phono-table" class="hidden center">
+          <table>
             <tbody>
               <tr>
                 <td class="bilabial nasal"></td>
@@ -530,9 +540,8 @@
           </table>
         </div>
 
-        <br>
-        <div class="center">
-          <table id="vowel-phono-table" class="hidden">
+        <div id="vowel-phono-table" class="hidden center">
+          <table>
             <tbody>
               <tr>
                 <td class="front close"></td>
@@ -587,13 +596,12 @@
           </table>
         </div>
 
-        <br>
-        <p id="unknown-phonemes"></p>
+        <div id="unknown-phonemes"></div>
 
       </div>
     </div>
 
-    <div class="form center">
+    <div class="center">
       <div id="similar-languages" class=""></div>
     </div>
 
