@@ -331,11 +331,20 @@
     function parse_phono() {
       document.getElementById('consonant-phono-table').classList = 'hidden center';
       document.getElementById('vowel-phono-table').classList = 'hidden center';
+      
+      var similar_languages = document.getElementById('similar-languages');
+      similar_languages.innerHTML = '';
 
       var phono = document.getElementById('phono-input')
         .value.split(/\s+/)
         .map(p => process_phoneme(p))
         .filter(function (it, i, ar) { return (ar.indexOf(it) === i) && (it.trim().length > 0); });
+
+      console.log(phono);
+
+      if (phono.length < 1) {
+        return;
+      }
 
       var qualities = phono.map(p => remove_diacritics(p));
 
@@ -392,9 +401,6 @@
       }
 
       unknowns.map(p => create_phono_element(unknowns_p, p));
-
-      var similar_languages = document.getElementById('similar-languages');
-      similar_languages.innerHTML = '';
 
       Promise.all(Object.keys(languages).map(async (k) => {
         return new Promise(function (resolve, _) {
