@@ -204,17 +204,18 @@
     });
 
     function remove_diacritics(s) {
-      return s.replace(/[ː̆:ʰʲʷ̩̯̥̬̪̺̝̞̟̠̃̈̚ˑ‿̴̹̜̤̰̼̘̙̻͉̽͜͡ʼ͇̊ˤˀᵊʱˡⁿᵐᵑˢʳ˞ᵗˠ̏̀̄́̋̂̌᷅᷄᷈]/g, '');
+      return s.replace(/[ː̆:ʰʲʷ̩̯̥̬̪̺̝̞̟̠̃̈̚ˑ‿̴̹̜̤̰̼̘̙̻͉̽͜͡ʼ͇̊'ˤˀᵊʱˡⁿᵐᵑˢʳ˞ᵗˠ̏̀̄́̋̂̌᷅᷄᷈]/g, '');
     }
 
     function process_phoneme(p) {
       return p
-        .replace('\'', 'ʼ')
+        .replace('ʼ', '\'')
         .replace('ɡ', 'g')
         .replace('ǃ', '!')
         .replace('ǀ', '|')
         .replace('ː', ':')
-        .replace('tʃ', 't̠ʃ');
+        .replace('tʃ', 't̠ʃ')
+        .replace('dʒ', 'd̠ʒ');
     }
 
     function frequency_to_rgb(freq) {
