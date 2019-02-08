@@ -114,6 +114,35 @@
       font-size: x-small;
       text-align: center;
     }
+
+    #similar-languages {
+      width: 100%;
+      margin-top: 30px;
+    }
+
+    .similar-language {
+      width: 70%;
+      padding: 20px;
+      margin: 10px auto;
+      border: 1px solid #e6e6e6;;
+      border-radius: 8px;
+    }
+
+    .phonology-text {
+      color: #959595;
+      font-size: small;
+    }
+
+    .phonology-text::before {
+      content: ' ';
+      display: block;
+      margin-top: 2px;
+    }
+
+    .similarity-percent {
+      float: right;
+      color: #959595;
+    }
   </style>
 
   <script type="text/javascript" src="lang_data.js"></script>
@@ -171,7 +200,13 @@
     }
 
     function process_phoneme(p) {
-      return p.replace('\'', 'ʼ').replace('ɡ', 'g').replace('ǃ', '!').replace('ǀ', '|').replace('ː', ':');
+      return p
+        .replace('\'', 'ʼ')
+        .replace('ɡ', 'g')
+        .replace('ǃ', '!')
+        .replace('ǀ', '|')
+        .replace('ː', ':')
+        .replace('tʃ', 't̠ʃ');
     }
 
     function frequency_to_rgb(freq) {
@@ -247,6 +282,11 @@
           }
         }
       }
+    }
+
+    function similarity(s1, s2) {
+      union = s1.concat(s2).filter(function (it, i, ar) { return ar.indexOf(it) === i });
+      return intersection(s1, s2).length / union.length;
     }
 
     function create_phono_element(e, p) {
@@ -339,6 +379,41 @@
       }
 
       unknowns.map(p => create_phono_element(unknowns_p, p));
+
+      var similar_languages = document.getElementById('similar-languages');
+      similar_languages.innerHTML = '';
+
+      Promise.all(Object.keys(languages).map(async (k) => {
+        return new Promise(function (resolve, _) {
+          languages[k].map(name => {
+            var ph = phonologies[k][name];
+            var sim = similarity(phono, ph);
+            resolve([k, name, sim, ph]);
+          })
+        });
+      })).then(ph => {
+        var ph = ph.filter(x => x != 0).slice(0, 10);
+        ph.sort((a, b) => b[2] - a[2]);
+        ph.map(lang_info => {
+          var div = document.createElement('div');
+          div.classList = 'similar-language';
+
+          var sim = Math.round(lang_info[2] * 10000) / 100;
+          div.innerHTML = lang_info[1] + ' (' + lang_info[0] + ')'
+          
+          var phonology_text = document.createElement('span');
+          phonology_text.classList = 'phonology-text';
+          phonology_text.innerHTML = '/' + lang_info[3].join(' ') + '/';
+
+          var sim_text = document.createElement('span');
+          sim_text.classList = 'similarity-percent';
+          sim_text.innerHTML = sim + '%'
+
+          div.appendChild(sim_text);
+          div.appendChild(phonology_text);
+          similar_languages.appendChild(div);
+        })
+      });
     }
   </script>
 </head>
@@ -518,8 +593,12 @@
       </div>
     </div>
 
+    <div class="form center">
+      <div id="similar-languages" class=""></div>
+    </div>
+
     <div class="footer">
-      Phoneme frequency data from <a href="https://phoible.org">PHOIBLE</a>.
+      Phoneme frequency data and language inventories from <a href="https://phoible.org">PHOIBLE</a>.
     </div>
 
   </div>
