@@ -269,7 +269,6 @@
 
           var freq = absolute_probability(p);
           phono_elements[i].style.backgroundColor = frequency_to_rgb(freq);
-          // freq * 100 => percentage => 2dp
           phono_elements[i].querySelector('.info-popup').innerHTML = (
             (Math.round(freq * 10000) / 100) + '% of languages have /' + p + '/');
         }
@@ -277,6 +276,10 @@
         el.classList += ' selected';
         el.style.backgroundColor = '#ffffff';
         el.querySelector('.info-popup').classList += ' hidden';
+
+        var freq = absolute_probability(phoneme);
+        el.querySelector('.info-popup').innerHTML = (
+          (Math.round(freq * 10000) / 100) + '% of languages have /' + phoneme + '/');
 
         for (var i = 0; i < phono_elements.length; i++) {
           if (el != phono_elements[i]) {
@@ -331,7 +334,7 @@
     function parse_phono() {
       document.getElementById('consonant-phono-table').classList = 'hidden center';
       document.getElementById('vowel-phono-table').classList = 'hidden center';
-      
+
       var similar_languages = document.getElementById('similar-languages');
       similar_languages.innerHTML = '';
 
