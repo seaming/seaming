@@ -414,7 +414,7 @@
           })
         });
       })).then(ph => {
-        var ph = ph.filter(x => x != 0);
+        var ph = ph.filter(x => x != 0 && x[2] > 0);
         ph.sort((a, b) => b[2] - a[2]);
         ph.slice(0, 10).map(lang_info => {
           var div = document.createElement('div');
