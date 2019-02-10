@@ -343,8 +343,6 @@
         .map(p => process_phoneme(p))
         .filter(function (it, i, ar) { return (ar.indexOf(it) === i) && (it.trim().length > 0); });
 
-      console.log(phono);
-
       if (phono.length < 1) {
         return;
       }
@@ -383,11 +381,9 @@
         var c = null;
         if (moa && poa) {
           c = moa + ' ' + poa;
-          console.log(moa, poa);
           document.getElementById('consonant-phono-table').classList = 'center';
         } else if (depth && height) {
           c = depth + ' ' + height;
-          console.log(depth, height);
           document.getElementById('vowel-phono-table').classList = 'center';
         }
 
