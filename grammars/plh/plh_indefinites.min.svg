@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg width="575.71mm" height="125.6mm" version="1.1" viewBox="0 0 575.71496 125.59923" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+ <metadata>
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title/>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <g transform="translate(-24.447 -114.33)">
+  <g fill="#000000" font-family="sans-serif" font-size="10.583px" letter-spacing="0px" stroke-width=".26458" word-spacing="0px">
+   <text x="65.403885" y="175.94557" text-anchor="middle" style="line-height:1.25" xml:space="preserve"><tspan x="65.403885" y="175.94557" text-align="center">specific</tspan><tspan x="65.403885" y="189.17474" text-align="center">known</tspan></text>
+   <text x="139.48721" y="175.94557" text-anchor="middle" style="line-height:1.25" xml:space="preserve"><tspan x="139.48721" y="175.94557" text-align="center">specific</tspan><tspan x="139.48721" y="189.17474" text-align="center">unknown</tspan></text>
+   <text x="226.27068" y="175.94557" text-anchor="middle" style="line-height:1.25" xml:space="preserve"><tspan x="226.27068" y="175.94557" text-align="center">irrealis</tspan><tspan x="226.27068" y="189.17474" text-align="center">non-specific</tspan></text>
+   <text x="334.74969" y="207.6956" style="line-height:1.25" xml:space="preserve"><tspan x="334.74969" y="207.6956" stroke-width=".26458" text-align="center" text-anchor="middle">conditional</tspan></text>
+   <text x="334.74969" y="154.77888" style="line-height:1.25" xml:space="preserve"><tspan x="334.74969" y="154.77888" stroke-width=".26458" text-align="center" text-anchor="middle">question</tspan></text>
+   <text x="440.58282" y="207.6956" style="line-height:1.25" xml:space="preserve"><tspan x="440.58282" y="207.6956" stroke-width=".26458" text-align="center" text-anchor="middle">comparative</tspan></text>
+   <text x="440.58282" y="153.19133" text-anchor="middle" style="line-height:1.25" xml:space="preserve"><tspan x="440.58282" y="153.19133" text-align="center">indirect</tspan><tspan x="440.58282" y="166.4205" text-align="center">negation</tspan></text>
+   <text x="551.70782" y="207.6956" style="line-height:1.25" xml:space="preserve"><tspan x="551.70782" y="207.6956" stroke-width=".26458" text-align="center" text-anchor="middle">free-choice</tspan></text>
+   <text x="551.70782" y="153.19133" text-anchor="middle" style="line-height:1.25" xml:space="preserve"><tspan x="551.70782" y="153.19133" text-align="center">direct</tspan><tspan x="551.70782" y="166.4205" text-align="center">negation</tspan></text>
+  </g>
+  <g fill="none" stroke="#3c3c3c" stroke-linecap="round" stroke-linejoin="round">
+   <rect x="30.388" y="153.84" width="145.52" height="48.453" ry="17.044" stroke-width="1.8818"/>
+   <path transform="matrix(.26458 0 0 .26458 19.742 101.47)" d="m1057.7 114.09c-52.408 0-48.919 48.84-102.44 48.488h-586.62c-35.687 0-64.418 28.729-64.418 64.416v122.99c0 35.687 28.731 64.418 64.418 64.418h587.47c52.505 0.11144 57.362 45.457 101.6 45.457h262.18c35.687 0 63.687-22.808 64.416-74.418 0.7219-51.077 33.429-88.665 100-88.217h194.57c35.687 0 64.416-28.731 64.416-64.418v-54.297c0-35.687-28.729-64.416-64.416-64.416h-421.17z" stroke-width="7.1122"/>
+   <rect x="393.11" y="185.91" width="201.11" height="36.693" ry="17.044" stroke-width="1.8818"/>
+   <rect x="516.09" y="132.29" width="71.249" height="48.453" ry="17.044" stroke-width="1.8818"/>
+  </g>
+  <g fill="#000000" font-family="sans-serif" font-size="10.583px" letter-spacing="0px" stroke-width=".26458" word-spacing="0px">
+   <text x="376.55386" y="127.79136" style="line-height:1.25" xml:space="preserve"><tspan x="376.55386" y="127.79136" stroke-width=".26458" text-align="center" text-anchor="middle">kee.én-</tspan></text>
+   <text x="551.70795" y="127.79136" style="line-height:1.25" xml:space="preserve"><tspan x="551.70795" y="127.79136" stroke-width=".26458" text-align="center" text-anchor="middle">eti-</tspan></text>
+   <text x="72.812248" y="150.01645" style="line-height:1.25" xml:space="preserve"><tspan x="72.812248" y="150.01645" stroke-width=".26458" text-align="center" text-anchor="middle">i-</tspan></text>
+   <text x="498.79117" y="234.68311" style="line-height:1.25" xml:space="preserve"><tspan x="498.79117" y="234.68311" stroke-width=".26458" text-align="center" text-anchor="middle">∅-</tspan></text>
+  </g>
+ </g>
+</svg>

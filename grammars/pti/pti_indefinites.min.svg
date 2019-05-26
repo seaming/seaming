@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg width="581.39mm" height="145.94mm" version="1.1" viewBox="0 0 581.39288 145.94385" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+ <metadata>
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title/>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <g transform="translate(-19.742 -101.47)">
+  <g fill="#000000" font-family="sans-serif" font-size="10.583px" letter-spacing="0px" stroke-width=".26458" word-spacing="0px">
+   <text x="65.403885" y="175.94557" text-anchor="middle" style="line-height:1.25" xml:space="preserve"><tspan x="65.403885" y="175.94557" text-align="center">specific</tspan><tspan x="65.403885" y="189.17474" text-align="center">known</tspan></text>
+   <text x="139.48721" y="175.94557" text-anchor="middle" style="line-height:1.25" xml:space="preserve"><tspan x="139.48721" y="175.94557" text-align="center">specific</tspan><tspan x="139.48721" y="189.17474" text-align="center">unknown</tspan></text>
+   <text x="226.27068" y="175.94557" text-anchor="middle" style="line-height:1.25" xml:space="preserve"><tspan x="226.27068" y="175.94557" text-align="center">irrealis</tspan><tspan x="226.27068" y="189.17474" text-align="center">non-specific</tspan></text>
+   <text x="334.74969" y="207.6956" style="line-height:1.25" xml:space="preserve"><tspan x="334.74969" y="207.6956" stroke-width=".26458" text-align="center" text-anchor="middle">conditional</tspan></text>
+   <text x="334.74969" y="154.77888" style="line-height:1.25" xml:space="preserve"><tspan x="334.74969" y="154.77888" stroke-width=".26458" text-align="center" text-anchor="middle">question</tspan></text>
+   <text x="440.58282" y="207.6956" style="line-height:1.25" xml:space="preserve"><tspan x="440.58282" y="207.6956" stroke-width=".26458" text-align="center" text-anchor="middle">comparative</tspan></text>
+   <text x="440.58282" y="153.19133" text-anchor="middle" style="line-height:1.25" xml:space="preserve"><tspan x="440.58282" y="153.19133" text-align="center">indirect</tspan><tspan x="440.58282" y="166.4205" text-align="center">negation</tspan></text>
+   <text x="551.70782" y="207.6956" style="line-height:1.25" xml:space="preserve"><tspan x="551.70782" y="207.6956" stroke-width=".26458" text-align="center" text-anchor="middle">free-choice</tspan></text>
+   <text x="551.70782" y="153.19133" text-anchor="middle" style="line-height:1.25" xml:space="preserve"><tspan x="551.70782" y="153.19133" text-align="center">direct</tspan><tspan x="551.70782" y="166.4205" text-align="center">negation</tspan></text>
+  </g>
+  <g fill="none" stroke="#3c3c3c" stroke-linecap="round" stroke-linejoin="round">
+   <path transform="matrix(.26458 0 0 .26458 19.742 101.47)" d="m124.67 118.57c-35.519-3.4538-64.416 28.729-64.416 64.416v129.89c0 35.687 28.729 64.416 64.416 64.416h779.49c111.82 0.0726 23.672-112.7 124.29-112.86h264.28c35.687 0 64.416-28.729 64.416-64.416v-17.459c0-35.687-28.729-64.416-64.416-64.416z" stroke-width="7.1122"/>
+   <path transform="matrix(.26458 0 0 .26458 19.742 101.47)" d="m939.55 176.72h-257.74c-35.687 0-64.416 28.729-64.416 64.416v152.69c0 35.687 28.729 64.416 64.416 64.416 138.08 0.0648 319.82 0.23219 422.86 0.18362h571.34c35.687 0 64.418-28.729 64.418-64.416v-204.3c0-35.687-28.731-64.418-64.418-64.418h-195.28c-163.64 0.28828-11.192 177.72-180 179.15h-211.64c-142.36 0.14391-13.657-129.31-149.53-127.72z" stroke-width="7.1122"/>
+   <rect x="401.19" y="125.55" width="184.01" height="56.471" ry="17.044" stroke-width="1.8818"/>
+  </g>
+  <g fill="#000000" font-family="sans-serif" font-size="10.583px" letter-spacing="0px" stroke-width=".26458" word-spacing="0px">
+   <text x="498.79105" y="119.32466" style="line-height:1.25" xml:space="preserve"><tspan x="498.79105" y="119.32466" stroke-width=".26458" text-align="center" text-anchor="middle">*yenʲ-</tspan></text>
+   <text x="334.74969" y="236.79976" style="line-height:1.25" xml:space="preserve"><tspan x="334.74969" y="236.79976" stroke-width=".26458" text-align="center" text-anchor="middle">*bʷay-</tspan></text>
+   <text x="138.95805" y="127.03321" style="line-height:1.25" xml:space="preserve"><tspan x="138.95805" y="127.03321" stroke-width=".26458" text-align="center" text-anchor="middle">*ki-</tspan></text>
+  </g>
+ </g>
+</svg>
