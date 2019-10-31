@@ -2,6 +2,8 @@
 <meta charset="utf-8">
 
 <head>
+  <title>Semantic maps</title>
+
   <style>
     * {
       box-sizing: border-box;
@@ -71,6 +73,24 @@
     .nodes circle {
       fill: white;
       stroke-width: 4px;
+    }
+
+    .description-box {
+      position: absolute;
+      top: 50px;
+      right: 50px;
+      width: 300px;
+      padding: 10px 14px;
+      border: 1px solid #e6e6e6;
+      border-radius: 8px;
+    }
+
+    .description-box:not(.active) {
+      visibility: hidden;
+    }
+
+    .unitalic {
+      font-style: normal;
     }
   </style>
 </head>
@@ -172,21 +192,44 @@
         .enter()
         .append("circle")
         .attr("r", 6)
-        .attr("stroke", d => find_colour(d.groups));
+        .attr("stroke", d => find_colour(d.groups))
+        .on("mouseover", (d, i) => {
+          if (i % 2 == 0) return;
+          show_description(d);
+        })
+        .on("mouseout", (d, i) => {
+          if (i % 2 == 0) return;
+          hide_description(d);
+        });
 
       node.call(
         d3.drag()
-          .on("start", drag_start)
-          .on("drag", dragged)
-          .on("end", drag_end)
+          .on("start", drag_start('node'))
+          .on("drag", dragged('node'))
+          .on("end", drag_end('node'))
       );
 
-      var label_node = container.append("g").attr("class", "labelNodes")
+      var label_node = container.append("g").attr("class", "label_nodes")
         .selectAll("text")
         .data(label.nodes)
         .enter()
         .append("text")
-        .text((d, i) => i % 2 == 0 ? "" : d.node.id);
+        .text((d, i) => i % 2 == 0 ? "" : d.node.id)
+        .on("mouseover", (d, i) => {
+          if (i % 2 == 0) return;
+          show_description(d.node);
+        })
+        .on("mouseout", (d, i) => {
+          if (i % 2 == 0) return;
+          hide_description(d.node);
+        });
+
+      label_node.call(
+        d3.drag()
+          .on("start", drag_start('label'))
+          .on("drag", dragged('label'))
+          .on("end", drag_end('label'))
+      );
 
       graph_layout.nodes(graph.nodes)
       graph_layout.force("link").links(graph.links);
@@ -218,21 +261,43 @@
         label_node.call(update_node);
       }
 
-      function drag_start(d) {
-        if (!d3.event.active) graph_layout.alphaTarget(0.3).restart();
-        d.fx = d.x;
-        d.fy = d.y;
+      function drag_start(type) {
+        return (d) => {
+          if (!d3.event.active) graph_layout.alphaTarget(0.3).restart();
+          var d = (type == 'node' ? d : d.node);
+          d.fx = d.x;
+          d.fy = d.y;
+        }
       }
 
-      function dragged(d) {
-        d.fx = d3.event.x;
-        d.fy = d3.event.y;
+      function dragged(type) {
+        return (d) => {
+          var d = (type == 'node' ? d : d.node)
+          d.fx = d3.event.x;
+          d.fy = d3.event.y;
+        }
       }
 
-      function drag_end(d) {
-        if (!d3.event.active) graph_layout.alphaTarget(0);
-        d.fx = null;
-        d.fy = null;
+      function drag_end(type) {
+        return (d) => {
+          if (!d3.event.active) graph_layout.alphaTarget(0);
+          var d = (type == 'node' ? d : d.node)
+          d.fx = null;
+          d.fy = null;
+        }
+      }
+
+      function show_description(d) {
+        var box = svg.node().previousElementSibling;
+        if (d.description) {
+          box.classList.add('active');
+          box.innerHTML = d.description + '<br>' + d.examples.map(s => '<i>' + s + '</i>').join('<br>');
+        }
+      }
+
+      function hide_description(d) {
+        var box = svg.node().previousElementSibling;
+        box.classList.remove('active')
       }
     }
 
@@ -285,16 +350,16 @@
   <script>
     var dative_instrumental_data = {
       "nodes": [
-        { "id": "Purpose", "groups": ["Dative"] },
-        { "id": "Direction", "groups": ["Dative"] },
-        { "id": "Recipient", "groups": ["Dative", "Instrumental"] },
-        { "id": "Experiencer", "groups": ["Dative"] },
-        { "id": "Beneficiary", "groups": ["Dative", "Instrumental"] },
-        { "id": "Predicative possessor", "groups": ["Dative"] },
-        { "id": "External possessor", "groups": ["Dative"] },
-        { "id": "Judicantis", "groups": ["Dative"] },
+        { "id": "Purpose", "groups": ["Dative"], "description": "Purpose of an action.", "examples": ["I left the party early <u>to get home on time</u>."] },
+        { "id": "Direction", "groups": ["Dative"], "description": "Direction of motion", "examples": ["Goethe went <u>to Leipzig</u> as a student."] },
+        { "id": "Recipient", "groups": ["Dative", "Instrumental"], "description": "Recipient of an exchange", "examples": ["Eve gave the apple <u>to Adam</u>."] },
+        { "id": "Experiencer", "groups": ["Dative"], "description": "Experiencer of an event", "examples": ["This seems outrageous <u>to me</u>."] },
+        { "id": "Beneficiary", "groups": ["Dative", "Instrumental"], "description": "Beneficiary of an event", "examples": ["I'll buy a bike <u>for/*to you</u>."] },
+        { "id": "Predicative possessor", "groups": ["Dative"], "description": "Possessor in possessive predicate.", "examples": ["This dog is <u>mine/*to me</u>."] },
+        { "id": "External possessor", "groups": ["Dative"], "description": "Possessor appears externally to possessed noun phrase.", "examples": ["On <u>lui</u> a cassé la jambe <span class='unitalic'>\"They broke his leg\" (French)<span>."] },
+        { "id": "Judicantis", "groups": ["Dative"], "description": "Judger in expressions of judgement.", "examples": ["Das ist <u>mir</u> zu warm <span class='unitalic'>\"That is too warm for/*to me\" (German)</span>."] },
         { "id": "Cause", "groups": ["Instrumental"] },
-        { "id": "Passive", "groups": ["Instrumental"] },
+        { "id": "Passive agent", "groups": ["Instrumental"] },
         { "id": "Source", "groups": ["Instrumental"] },
         { "id": "Instrumental", "groups": ["Instrumental"] },
         { "id": "Comitative", "groups": ["Instrumental"] },
@@ -312,9 +377,9 @@
         { "source": "Judicantis", "target": "Beneficiary", "value": 1 },
         { "source": "Cause", "target": "Beneficiary", "value": 1 },
         { "source": "Source", "target": "Cause", "value": 1 },
-        { "source": "Passive", "target": "Cause", "value": 1 },
-        { "source": "Source", "target": "Passive", "value": 1 },
-        { "source": "Passive", "target": "Instrumental", "value": 1 },
+        { "source": "Passive agent", "target": "Cause", "value": 1 },
+        { "source": "Source", "target": "Passive agent", "value": 1 },
+        { "source": "Passive agent", "target": "Instrumental", "value": 1 },
         { "source": "Instrumental", "target": "Comitative", "value": 1 },
         { "source": "Comitative", "target": "Co-agent", "value": 1 },
         { "source": "Comitative", "target": "Conjunctive", "value": 1 },
@@ -333,7 +398,10 @@
     </ul>
   </div>
 
-  <svg width="960" height="600" onload="make_graph(dative_instrumental_data, this);"></svg>
+  <div style="position: relative">
+    <div class="description-box"></div>
+    <svg width="960" height="600" onload="make_graph(dative_instrumental_data, this);"></svg>
+  </div>
 
   <script>
     var indefinite_data = {
@@ -373,7 +441,10 @@
     </ul>
   </div>
 
-  <svg width="960" height="600" onload="make_graph(indefinite_data, this);"></svg>
+  <div style="position: relative">
+    <div class="description-box"></div>
+    <svg width="960" height="600" onload="make_graph(indefinite_data, this);"></svg>
+  </div>
 
   <script>
     var reflexive_data = {
@@ -407,5 +478,8 @@
     </ul>
   </div>
 
-  <svg width="960" height="600" onload="make_graph(reflexive_data, this);"></svg>
+  <div style="position: relative">
+    <div class="description-box"></div>
+    <svg width="960" height="600" onload="make_graph(reflexive_data, this);"></svg>
+  </div>
 </body>
