@@ -76,133 +76,6 @@
 </head>
 
 <body>
-  <script>
-    var dative_instrumental_data = {
-      "nodes": [
-        { "id": "Purpose", "groups": ["Dative"] },
-        { "id": "Direction", "groups": ["Dative"] },
-        { "id": "Recipient", "groups": ["Dative", "Instrumental"] },
-        { "id": "Experiencer", "groups": ["Dative"] },
-        { "id": "Beneficiary", "groups": ["Dative", "Instrumental"] },
-        { "id": "Predicative possessor", "groups": ["Dative"] },
-        { "id": "External possessor", "groups": ["Dative"] },
-        { "id": "Judicantis", "groups": ["Dative"] },
-        { "id": "Cause", "groups": ["Instrumental"] },
-        { "id": "Passive", "groups": ["Instrumental"] },
-        { "id": "Source", "groups": ["Instrumental"] },
-        { "id": "Instrumental", "groups": ["Instrumental"] },
-        { "id": "Comitative", "groups": ["Instrumental"] },
-        { "id": "Conjunctive", "groups": ["Instrumental"] },
-        { "id": "Co-agent", "groups": ["Instrumental"] },
-      ],
-      "links": [
-        { "source": "Purpose", "target": "Direction", "value": 1 },
-        { "source": "Direction", "target": "Recipient", "value": 1 },
-        { "source": "Experiencer", "target": "Recipient", "value": 1 },
-        { "source": "Recipient", "target": "Beneficiary", "value": 1 },
-        { "source": "Predicative possessor", "target": "Recipient", "value": 1 },
-        { "source": "External possessor", "target": "Beneficiary", "value": 1 },
-        { "source": "Predicative possessor", "target": "External possessor", "value": 1 },
-        { "source": "Judicantis", "target": "Beneficiary", "value": 1 },
-        { "source": "Cause", "target": "Beneficiary", "value": 1 },
-        { "source": "Source", "target": "Cause", "value": 1 },
-        { "source": "Passive", "target": "Cause", "value": 1 },
-        { "source": "Source", "target": "Passive", "value": 1 },
-        { "source": "Passive", "target": "Instrumental", "value": 1 },
-        { "source": "Instrumental", "target": "Comitative", "value": 1 },
-        { "source": "Comitative", "target": "Co-agent", "value": 1 },
-        { "source": "Comitative", "target": "Conjunctive", "value": 1 },
-        { "source": "Co-agent", "target": "Recipient", "value": 1 },
-      ]
-    };
-  </script>
-
-  <div class="header">
-    <h2>Dative&ndash;Instrumental</h2>
-    <ul class="citations">
-      <li>
-        Haspelmath, M. (2003). The geometry of grammatical meaning: Semantic maps and cross-linguistic comparison.
-        In <i>The new psychology of language</i> (pp. 217-248). Psychology Press.
-      </li>
-    </ul>
-  </div>
-
-  <svg width="960" height="600" onload="make_graph(dative_instrumental_data, this);"></svg>
-
-  <script>
-    var indefinite_data = {
-      "nodes": [
-        { "id": "Specific known", "groups": ["Indefinite"] },
-        { "id": "Specific unknown", "groups": ["Indefinite"] },
-        { "id": "Irrealis non-specific", "groups": ["Indefinite"] },
-        { "id": "Question", "groups": ["Indefinite"] },
-        { "id": "Conditional", "groups": ["Indefinite"] },
-        { "id": "Indirect negation", "groups": ["Indefinite"] },
-        { "id": "Comparative", "groups": ["Indefinite"] },
-        { "id": "Direct negation", "groups": ["Indefinite"] },
-        { "id": "Free choice", "groups": ["Indefinite"] },
-      ],
-      "links": [
-        { "source": "Specific unknown", "target": "Specific known", "value": 1 },
-        { "source": "Irrealis non-specific", "target": "Specific unknown", "value": 1 },
-        { "source": "Question", "target": "Irrealis non-specific", "value": 1 },
-        { "source": "Conditional", "target": "Irrealis non-specific", "value": 1 },
-        { "source": "Indirect negation", "target": "Question", "value": 1 },
-        { "source": "Indirect negation", "target": "Comparative", "value": 1 },
-        { "source": "Direct negation", "target": "Indirect negation", "value": 1 },
-        { "source": "Comparative", "target": "Conditional", "value": 1 },
-        { "source": "Comparative", "target": "Free choice", "value": 1 },
-      ]
-    };
-  </script>
-
-  <div class="header">
-    <h2>Indefinite pronouns</h2>
-    <ul class="citations">
-      <li>
-        Haspelmath, M. (2003). The geometry of grammatical meaning: Semantic maps and cross-linguistic comparison.
-        In <i>The new psychology of language</i> (pp. 217-248). Psychology Press.
-      </li>
-      <li>Haspelmath, M. (2001). <i>Indefinite pronouns</i>. OUP Oxford.</li>
-    </ul>
-  </div>
-
-  <svg width="960" height="600" onload="make_graph(indefinite_data, this);"></svg>
-
-  <script>
-    var reflexive_data = {
-      "nodes": [
-        { "id": "Full reflexive", "groups": ["Reflexive"] },
-        { "id": "Grooming/body motion", "groups": ["Reflexive"] },
-        { "id": "Naturally reciprocal", "groups": ["Reflexive"] },
-        { "id": "Anticausative", "groups": ["Reflexive"] },
-        { "id": "Deobjective", "groups": ["Reflexive"] },
-        { "id": "Potential passive", "groups": ["Reflexive"] },
-        { "id": "Passive", "groups": ["Reflexive"] },
-      ],
-      "links": [
-        { "source": "Grooming/body motion", "target": "Full reflexive", "value": 1 },
-        { "source": "Naturally reciprocal", "target": "Grooming/body motion", "value": 1 },
-        { "source": "Anticausative", "target": "Grooming/body motion", "value": 1 },
-        { "source": "Deobjective", "target": "Anticausative", "value": 1 },
-        { "source": "Potential passive", "target": "Anticausative", "value": 1 },
-        { "source": "Potential passive", "target": "Passive", "value": 1 },
-      ]
-    };
-  </script>
-
-  <div class="header">
-    <h2>Reflexive</h2>
-    <ul class="citations">
-      <li>
-        Haspelmath, M. (2003). The geometry of grammatical meaning: Semantic maps and cross-linguistic comparison.
-        In <i>The new psychology of language</i> (pp. 217-248). Psychology Press.
-      </li>
-    </ul>
-  </div>
-
-  <svg width="960" height="600" onload="make_graph(reflexive_data, this);"></svg>
-
   <script src="https://d3js.org/d3.v4.min.js"></script>
   <script>
     // adapted from
@@ -408,4 +281,131 @@
     }
 
   </script>
+
+  <script>
+    var dative_instrumental_data = {
+      "nodes": [
+        { "id": "Purpose", "groups": ["Dative"] },
+        { "id": "Direction", "groups": ["Dative"] },
+        { "id": "Recipient", "groups": ["Dative", "Instrumental"] },
+        { "id": "Experiencer", "groups": ["Dative"] },
+        { "id": "Beneficiary", "groups": ["Dative", "Instrumental"] },
+        { "id": "Predicative possessor", "groups": ["Dative"] },
+        { "id": "External possessor", "groups": ["Dative"] },
+        { "id": "Judicantis", "groups": ["Dative"] },
+        { "id": "Cause", "groups": ["Instrumental"] },
+        { "id": "Passive", "groups": ["Instrumental"] },
+        { "id": "Source", "groups": ["Instrumental"] },
+        { "id": "Instrumental", "groups": ["Instrumental"] },
+        { "id": "Comitative", "groups": ["Instrumental"] },
+        { "id": "Conjunctive", "groups": ["Instrumental"] },
+        { "id": "Co-agent", "groups": ["Instrumental"] },
+      ],
+      "links": [
+        { "source": "Purpose", "target": "Direction", "value": 1 },
+        { "source": "Direction", "target": "Recipient", "value": 1 },
+        { "source": "Experiencer", "target": "Recipient", "value": 1 },
+        { "source": "Recipient", "target": "Beneficiary", "value": 1 },
+        { "source": "Predicative possessor", "target": "Recipient", "value": 1 },
+        { "source": "External possessor", "target": "Beneficiary", "value": 1 },
+        { "source": "Predicative possessor", "target": "External possessor", "value": 1 },
+        { "source": "Judicantis", "target": "Beneficiary", "value": 1 },
+        { "source": "Cause", "target": "Beneficiary", "value": 1 },
+        { "source": "Source", "target": "Cause", "value": 1 },
+        { "source": "Passive", "target": "Cause", "value": 1 },
+        { "source": "Source", "target": "Passive", "value": 1 },
+        { "source": "Passive", "target": "Instrumental", "value": 1 },
+        { "source": "Instrumental", "target": "Comitative", "value": 1 },
+        { "source": "Comitative", "target": "Co-agent", "value": 1 },
+        { "source": "Comitative", "target": "Conjunctive", "value": 1 },
+        { "source": "Co-agent", "target": "Recipient", "value": 1 },
+      ]
+    };
+  </script>
+
+  <div class="header">
+    <h2>Dative&ndash;Instrumental</h2>
+    <ul class="citations">
+      <li>
+        Haspelmath, M. (2003). The geometry of grammatical meaning: Semantic maps and cross-linguistic comparison.
+        In <i>The new psychology of language</i> (pp. 217-248). Psychology Press.
+      </li>
+    </ul>
+  </div>
+
+  <svg width="960" height="600" onload="make_graph(dative_instrumental_data, this);"></svg>
+
+  <script>
+    var indefinite_data = {
+      "nodes": [
+        { "id": "Specific known", "groups": ["Indefinite"] },
+        { "id": "Specific unknown", "groups": ["Indefinite"] },
+        { "id": "Irrealis non-specific", "groups": ["Indefinite"] },
+        { "id": "Question", "groups": ["Indefinite"] },
+        { "id": "Conditional", "groups": ["Indefinite"] },
+        { "id": "Indirect negation", "groups": ["Indefinite"] },
+        { "id": "Comparative", "groups": ["Indefinite"] },
+        { "id": "Direct negation", "groups": ["Indefinite"] },
+        { "id": "Free choice", "groups": ["Indefinite"] },
+      ],
+      "links": [
+        { "source": "Specific unknown", "target": "Specific known", "value": 1 },
+        { "source": "Irrealis non-specific", "target": "Specific unknown", "value": 1 },
+        { "source": "Question", "target": "Irrealis non-specific", "value": 1 },
+        { "source": "Conditional", "target": "Irrealis non-specific", "value": 1 },
+        { "source": "Indirect negation", "target": "Question", "value": 1 },
+        { "source": "Indirect negation", "target": "Comparative", "value": 1 },
+        { "source": "Direct negation", "target": "Indirect negation", "value": 1 },
+        { "source": "Comparative", "target": "Conditional", "value": 1 },
+        { "source": "Comparative", "target": "Free choice", "value": 1 },
+      ]
+    };
+  </script>
+
+  <div class="header">
+    <h2>Indefinite pronouns</h2>
+    <ul class="citations">
+      <li>
+        Haspelmath, M. (2003). The geometry of grammatical meaning: Semantic maps and cross-linguistic comparison.
+        In <i>The new psychology of language</i> (pp. 217-248). Psychology Press.
+      </li>
+      <li>Haspelmath, M. (2001). <i>Indefinite pronouns</i>. OUP Oxford.</li>
+    </ul>
+  </div>
+
+  <svg width="960" height="600" onload="make_graph(indefinite_data, this);"></svg>
+
+  <script>
+    var reflexive_data = {
+      "nodes": [
+        { "id": "Full reflexive", "groups": ["Reflexive"] },
+        { "id": "Grooming/body motion", "groups": ["Reflexive"] },
+        { "id": "Naturally reciprocal", "groups": ["Reflexive"] },
+        { "id": "Anticausative", "groups": ["Reflexive"] },
+        { "id": "Deobjective", "groups": ["Reflexive"] },
+        { "id": "Potential passive", "groups": ["Reflexive"] },
+        { "id": "Passive", "groups": ["Reflexive"] },
+      ],
+      "links": [
+        { "source": "Grooming/body motion", "target": "Full reflexive", "value": 1 },
+        { "source": "Naturally reciprocal", "target": "Grooming/body motion", "value": 1 },
+        { "source": "Anticausative", "target": "Grooming/body motion", "value": 1 },
+        { "source": "Deobjective", "target": "Anticausative", "value": 1 },
+        { "source": "Potential passive", "target": "Anticausative", "value": 1 },
+        { "source": "Potential passive", "target": "Passive", "value": 1 },
+      ]
+    };
+  </script>
+
+  <div class="header">
+    <h2>Reflexive</h2>
+    <ul class="citations">
+      <li>
+        Haspelmath, M. (2003). The geometry of grammatical meaning: Semantic maps and cross-linguistic comparison.
+        In <i>The new psychology of language</i> (pp. 217-248). Psychology Press.
+      </li>
+    </ul>
+  </div>
+
+  <svg width="960" height="600" onload="make_graph(reflexive_data, this);"></svg>
 </body>
