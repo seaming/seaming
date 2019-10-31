@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<head>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    @font-face {
+      font-family: CharisSILW;
+      src: url(CharisSIL-R.woff);
+    }
+
+    @font-face {
+      font-family: CharisSILW;
+      font-style: italic;
+      src: url(CharisSIL-I.woff);
+    }
+
+    @font-face {
+      font-family: CharisSILW;
+      font-weight: bold;
+      src: url(CharisSIL-B.woff);
+    }
+
+    @font-face {
+      font-family: CharisSILW;
+      font-weight: bold;
+      font-style: italic;
+      src: url(CharisSIL-BI.woff);
+    }
+
+    body {
+      margin: 0;
+      font-family: CharisSILW, sans-serif;
+      font-size: 16px;
+      background: #fafafa;
+    }
+
+    .header {
+      width: 50%;
+      margin: 50px auto;
+    }
+
+    .citations {
+      list-style-type: none;
+      padding-left: 20px;
+      font-size: small;
+      color: #959595;
+    }
+
+    .citations li:not(:first-child) {
+      margin-top: 8px;
+    }
+
+    svg {
+      border-top: 1px solid #e6e6e6;
+      border-bottom: 1px solid #e6e6e6;
+      background: white;
+      left: 0;
+      right: 0;
+      width: 100%;
+    }
+
+    .links line {
+      stroke: #999;
+      stroke-opacity: 0.6;
+    }
+
+    .nodes circle {
+      fill: white;
+      stroke-width: 4px;
+    }
+  </style>
+</head>
+
+<body>
+  <script>
+    var dative_instrumental_data = {
+      "nodes": [
+        { "id": "Purpose", "groups": ["Dative"] },
+        { "id": "Direction", "groups": ["Dative"] },
+        { "id": "Recipient", "groups": ["Dative", "Instrumental"] },
+        { "id": "Experiencer", "groups": ["Dative"] },
+        { "id": "Beneficiary", "groups": ["Dative", "Instrumental"] },
+        { "id": "Predicative possessor", "groups": ["Dative"] },
+        { "id": "External possessor", "groups": ["Dative"] },
+        { "id": "Judicantis", "groups": ["Dative"] },
+        { "id": "Cause", "groups": ["Instrumental"] },
+        { "id": "Passive", "groups": ["Instrumental"] },
+        { "id": "Source", "groups": ["Instrumental"] },
+        { "id": "Instrumental", "groups": ["Instrumental"] },
+        { "id": "Comitative", "groups": ["Instrumental"] },
+        { "id": "Conjunctive", "groups": ["Instrumental"] },
+        { "id": "Co-agent", "groups": ["Instrumental"] },
+      ],
+      "links": [
+        { "source": "Purpose", "target": "Direction", "value": 1 },
+        { "source": "Direction", "target": "Recipient", "value": 1 },
+        { "source": "Experiencer", "target": "Recipient", "value": 1 },
+        { "source": "Recipient", "target": "Beneficiary", "value": 1 },
+        { "source": "Predicative possessor", "target": "Recipient", "value": 1 },
+        { "source": "External possessor", "target": "Beneficiary", "value": 1 },
+        { "source": "Predicative possessor", "target": "External possessor", "value": 1 },
+        { "source": "Judicantis", "target": "Beneficiary", "value": 1 },
+        { "source": "Cause", "target": "Beneficiary", "value": 1 },
+        { "source": "Source", "target": "Cause", "value": 1 },
+        { "source": "Passive", "target": "Cause", "value": 1 },
+        { "source": "Source", "target": "Passive", "value": 1 },
+        { "source": "Passive", "target": "Instrumental", "value": 1 },
+        { "source": "Instrumental", "target": "Comitative", "value": 1 },
+        { "source": "Comitative", "target": "Co-agent", "value": 1 },
+        { "source": "Comitative", "target": "Conjunctive", "value": 1 },
+        { "source": "Co-agent", "target": "Recipient", "value": 1 },
+      ]
+    };
+  </script>
+
+  <div class="header">
+    <h2>Dative&ndash;Instrumental</h2>
+    <ul class="citations">
+      <li>
+        Haspelmath, M. (2003). The geometry of grammatical meaning: Semantic maps and cross-linguistic comparison.
+        In <i>The new psychology of language</i> (pp. 217-248). Psychology Press.
+      </li>
+    </ul>
+  </div>
+
+  <svg width="960" height="600" onload="make_graph(dative_instrumental_data, this);"></svg>
+
+  <script>
+    var indefinite_data = {
+      "nodes": [
+        { "id": "Specific known", "groups": ["Indefinite"] },
+        { "id": "Specific unknown", "groups": ["Indefinite"] },
+        { "id": "Irrealis non-specific", "groups": ["Indefinite"] },
+        { "id": "Question", "groups": ["Indefinite"] },
+        { "id": "Conditional", "groups": ["Indefinite"] },
+        { "id": "Indirect negation", "groups": ["Indefinite"] },
+        { "id": "Comparative", "groups": ["Indefinite"] },
+        { "id": "Direct negation", "groups": ["Indefinite"] },
+        { "id": "Free choice", "groups": ["Indefinite"] },
+      ],
+      "links": [
+        { "source": "Specific unknown", "target": "Specific known", "value": 1 },
+        { "source": "Irrealis non-specific", "target": "Specific unknown", "value": 1 },
+        { "source": "Question", "target": "Irrealis non-specific", "value": 1 },
+        { "source": "Conditional", "target": "Irrealis non-specific", "value": 1 },
+        { "source": "Indirect negation", "target": "Question", "value": 1 },
+        { "source": "Indirect negation", "target": "Comparative", "value": 1 },
+        { "source": "Direct negation", "target": "Indirect negation", "value": 1 },
+        { "source": "Comparative", "target": "Conditional", "value": 1 },
+        { "source": "Comparative", "target": "Free choice", "value": 1 },
+      ]
+    };
+  </script>
+
+  <div class="header">
+    <h2>Indefinite pronouns</h2>
+    <ul class="citations">
+      <li>
+        Haspelmath, M. (2003). The geometry of grammatical meaning: Semantic maps and cross-linguistic comparison.
+        In <i>The new psychology of language</i> (pp. 217-248). Psychology Press.
+      </li>
+      <li>Haspelmath, M. (2001). <i>Indefinite pronouns</i>. OUP Oxford.</li>
+    </ul>
+  </div>
+
+  <svg width="960" height="600" onload="make_graph(indefinite_data, this);"></svg>
+
+  <script>
+    var reflexive_data = {
+      "nodes": [
+        { "id": "Full reflexive", "groups": ["Reflexive"] },
+        { "id": "Grooming/body motion", "groups": ["Reflexive"] },
+        { "id": "Naturally reciprocal", "groups": ["Reflexive"] },
+        { "id": "Anticausative", "groups": ["Reflexive"] },
+        { "id": "Deobjective", "groups": ["Reflexive"] },
+        { "id": "Potential passive", "groups": ["Reflexive"] },
+        { "id": "Passive", "groups": ["Reflexive"] },
+      ],
+      "links": [
+        { "source": "Grooming/body motion", "target": "Full reflexive", "value": 1 },
+        { "source": "Naturally reciprocal", "target": "Grooming/body motion", "value": 1 },
+        { "source": "Anticausative", "target": "Grooming/body motion", "value": 1 },
+        { "source": "Deobjective", "target": "Anticausative", "value": 1 },
+        { "source": "Potential passive", "target": "Anticausative", "value": 1 },
+        { "source": "Potential passive", "target": "Passive", "value": 1 },
+      ]
+    };
+  </script>
+
+  <div class="header">
+    <h2>Reflexive</h2>
+    <ul class="citations">
+      <li>
+        Haspelmath, M. (2003). The geometry of grammatical meaning: Semantic maps and cross-linguistic comparison.
+        In <i>The new psychology of language</i> (pp. 217-248). Psychology Press.
+      </li>
+    </ul>
+  </div>
+
+  <svg width="960" height="600" onload="make_graph(reflexive_data, this);"></svg>
+
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script>
+    // adapted from
+    // https://bl.ocks.org/mapio/53fed7d84cd1812d6a6639ed7aa83868
+
+    var color = d3.scaleOrdinal(d3.schemeCategory20);
+
+    function make_graph(graph, svg) {
+
+      var svg = d3.select(svg);
+
+      svg.call(
+        d3.zoom()
+          .scaleExtent([0.75, 4])
+          .on("zoom", function () { container.attr("transform", d3.event.transform); })
+      );
+
+      var width = +svg.attr("width"),
+        height = +svg.attr("height");
+
+      var keys = (arr => {
+        var u = {}, a = [];
+        for (var i = 0, l = arr.length; i < l; ++i) {
+          if (!u.hasOwnProperty(arr[i])) {
+            a.push(arr[i]);
+            u[arr[i]] = 1;
+          }
+        }
+        return a;
+      })(graph.nodes.map(n => n.groups))
+
+      if (keys.length > 1) {
+
+        const KEY_INITIAL = 50;
+        const KEY_SPACE = 25;
+
+        svg.selectAll("key-point")
+          .data(keys)
+          .enter()
+          .append("circle")
+          .attr("cx", 50)
+          .attr("cy", (d, i) => KEY_INITIAL + i * KEY_SPACE)
+          .attr("r", 7)
+          .style("fill", d => find_colour(d));
+
+        svg.selectAll("key-label")
+          .data(keys)
+          .enter()
+          .append("text")
+          .attr("x", 80)
+          .attr("y", (d, i) => KEY_INITIAL + i * KEY_SPACE + 1)
+          .style("fill", d => find_colour(d))
+          .text(d => d.join(' + '))
+          .attr("text-anchor", "left")
+          .style("alignment-baseline", "middle");
+      }
+
+
+      var label = {
+        'nodes': [],
+        'links': []
+      };
+
+      graph.nodes.forEach((d, i) => {
+        label.nodes.push({ node: d });
+        label.nodes.push({ node: d });
+        label.links.push({
+          source: i * 2,
+          target: i * 2 + 1
+        });
+      });
+
+      var label_layout = d3.forceSimulation(label.nodes)
+        .force("charge", d3.forceManyBody().strength(-100))
+        .force("link", d3.forceLink(label.links).distance(0).strength(2));
+
+      var graph_layout = d3.forceSimulation()
+        .force("link", d3.forceLink().id(d => d.id).distance(90))
+        .force("charge", d3.forceManyBody().strength(-200))
+        .force("center", d3.forceCenter(width / 2, height / 2))
+        .on("tick", ticked);
+
+      var container = svg.append("g");
+
+      var link = container.append("g").attr("class", "links")
+        .selectAll("line")
+        .data(graph.links)
+        .enter().append("line")
+        .attr("stroke-width", d => Math.sqrt(d.value));
+
+      var node = container.append("g").attr("class", "nodes")
+        .selectAll("g")
+        .data(graph.nodes)
+        .enter()
+        .append("circle")
+        .attr("r", 6)
+        .attr("stroke", d => find_colour(d.groups));
+
+      node.call(
+        d3.drag()
+          .on("start", drag_start)
+          .on("drag", dragged)
+          .on("end", drag_end)
+      );
+
+      var label_node = container.append("g").attr("class", "labelNodes")
+        .selectAll("text")
+        .data(label.nodes)
+        .enter()
+        .append("text")
+        .text((d, i) => i % 2 == 0 ? "" : d.node.id);
+
+      graph_layout.nodes(graph.nodes)
+      graph_layout.force("link").links(graph.links);
+
+      function ticked() {
+        link.call(update_link);
+        node.call(update_node);
+
+        label_layout.alphaTarget(0.3).restart();
+        label_node.each(function (d, i) {
+          if (i % 2 == 0) {
+            d.x = d.node.x;
+            d.y = d.node.y;
+          } else {
+            var b = this.getBBox();
+
+            var diffX = d.x - d.node.x;
+            var diffY = d.y - d.node.y;
+
+            var dist = Math.sqrt(diffX * diffX + diffY * diffY);
+
+            var shiftX = b.width * (diffX - dist) / (dist * 2);
+            shiftX = Math.max(-b.width, Math.min(0, shiftX));
+            var shiftY = 5;
+            this.setAttribute("transform", "translate(" + shiftX + "," + shiftY + ")");
+          }
+        });
+
+        label_node.call(update_node);
+      }
+
+      function drag_start(d) {
+        if (!d3.event.active) graph_layout.alphaTarget(0.3).restart();
+        d.fx = d.x;
+        d.fy = d.y;
+      }
+
+      function dragged(d) {
+        d.fx = d3.event.x;
+        d.fy = d3.event.y;
+      }
+
+      function drag_end(d) {
+        if (!d3.event.active) graph_layout.alphaTarget(0);
+        d.fx = null;
+        d.fy = null;
+      }
+    }
+
+    function fixna(x) {
+      if (isFinite(x)) return x;
+      return 0;
+    }
+
+    function update_link(link) {
+      link.attr("x1", function (d) { return fixna(d.source.x); })
+        .attr("y1", function (d) { return fixna(d.source.y); })
+        .attr("x2", function (d) { return fixna(d.target.x); })
+        .attr("y2", function (d) { return fixna(d.target.y); });
+    }
+
+    function update_node(node) {
+      node.attr("transform", function (d) {
+        return "translate(" + fixna(d.x) + "," + fixna(d.y) + ")";
+      });
+    }
+
+    function find_colour(l) {
+      // takes a list of ids and calculates a colour average of the colours assigned to each id
+      var c = color(l[0]);
+      l.slice(1).forEach(g => c = blend(c, color(g)));
+      return c;
+    }
+
+    function blend(c1, c2) {
+      // https://gist.github.com/rmwxiong/ad6e922dcc739a599640/02854508d14e737e38293c5467d75c45843830c8
+      var avg = function (a, b) { return (a + b) / 2; },
+        t16 = function (c) { return parseInt(('' + c).replace('#', ''), 16) },
+        hex = function (c) {
+          var t = (c >> 0).toString(16);
+          return t.length == 2 ? t : '0' + t
+        },
+        hex1 = t16(c1),
+        hex2 = t16(c2),
+        r = function (hex) { return hex >> 16 & 0xFF },
+        g = function (hex) { return hex >> 8 & 0xFF },
+        b = function (hex) { return hex & 0xFF },
+        res = '#' + hex(avg(r(hex1), r(hex2)))
+          + hex(avg(g(hex1), g(hex2)))
+          + hex(avg(b(hex1), b(hex2)));
+      return res;
+    }
+
+  </script>
+</body>
