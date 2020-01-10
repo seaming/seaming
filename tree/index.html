@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>tree test</title>
+
+  <style>
+    * { box-sizing: border-box; }
+    #svg { margin: 80px auto 80px auto; width: min-content; }
+    svg { width: 1200px; height: 800px; }
+    .data-container { margin: 80px auto 80px auto; width: 80%; }
+    #data { width: 100%; display: block; padding: 20px; white-space: pre-wrap;
+      font-family: monospace; font-size: 14px; border: 1px solid #e6e6e6;
+      border-radius: 8px; resize: vertical;}
+    .label { display: inline-block; margin: 0px 0px 8px 8px; }
+    #control-circle { pointer-events: none; }
+    .interactive { cursor: move; }
+    svg text { user-select: none; }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/@svgdotjs/svg.js@3.0/dist/svg.min.js"></script>
+</head>
+
+<body>
+  <div id="svg">
+    <svg></svg>
+  </div>
+
+  <div class="data-container">
+    <span class="label">
+      <input type="checkbox" checked>
+      Sort nodes automatically</span>
+    <textarea id="data" rows="20"></textarea>
+  </div>
+
+  <script>
+    // tree data
+
+    var start_time = -3555;
+    var end_time = 2020;
+
+    var TREE = {
+      until: 0.05, name: "PIE",
+      children: [
+        {until: 0.12, name: "", children: [
+          {until: 0.18, name: "", children: [
+            {until: 0.22, name: "", children: [
+              {until: 0.25, name: "", children: [
+                {until: 0.32, name: "", children: [
+                  {until: 0.39, name: "", children: [
+                    {until: 1, name: "Romance", children: []},
+                    {until: 0.66, name: "Germanic", children: [
+                      {until: 1, name: "North Germanic", children: []},
+                      {until: 1, name: "West Germanic", children: []},
+                      {until: 0.73, name: "East Germanic", children: []},
+                    ]},
+                  ]},
+                  {until: 0.48, name: "Celtic", children: [
+                    {until: 1, name: "Goidelic", children: []},
+                    {until: 1, name: "Brittonic", children: []},
+                  ]},
+                ]},
+                {until: 0.38, name: "Balto-Slavic", children: [
+                  {until: 0.78, name: "Slavic", children: [
+                    {until: 0.84, name: "", children: [
+                      {until: 1, name: "East Slavic", children: []},
+                      {until: 1, name: "West Slavic", children: []},
+                    ]},
+                    {until: 1, name: "South Slavic", children: []},
+                  ]},
+                  {until: 1, name: "Baltic", children: []},
+                ]},
+              ]},
+              {until: 0.26, name: "", children: [
+                {until: 0.36, name: "", children: [
+                  {until: 1, name: "Indo-Aryan", children: []},
+                  {until: 1, name: "Iranian", children: []},
+                ]},
+                {until: 1, name: "Albanian", children: []},
+              ]},
+            ]},
+            {until: 0.28, name: "", children: [
+              {until: 1, name: "Greek", children: []},
+              {until: 1, name: "Armenian", children: []},
+            ]},
+          ]},
+          {until: 0.73, name: "", children: [
+            {until: 0.76, name: "Tocharian A", children: []},
+            {until: 0.75, name: "Tocharian B", children: []},
+          ]},
+        ]},
+        {until: 0.49, name: "Hittite", children: []},
+      ]
+    }
+
+    const FIX_ON_INVALID = true;
+    var order_nodes = true;
+
+    function validate_tree(node) {
+      for (var i = 0; i < node.children.length; i++) {
+        var child = node.children[i];
+
+        if (child.until < node.until) {
+          if (FIX_ON_INVALID) {
+            node.children.splice(i, 1, ...child.children);
+            i += child.children.length - 1;
+          } else {
+            throw Error;
+          }
+        }
+
+        validate_tree(child);
+      }
+    }
+  </script>
+
+  <script>
+    // drawing script
+
+    var draw = SVG('svg');
+
+    var bBox = draw.node.getBoundingClientRect();
+    const WIDTH = bBox.width;
+    const HEIGHT = bBox.height;
+    
+    function mouse_pos(evt) {
+      var CTM = draw.node.getScreenCTM();
+      return {
+        x: (evt.clientX - CTM.e) / CTM.a,
+        y: (evt.clientY - CTM.f) / CTM.d
+      };
+    }
+
+    const STROKE_WIDTH = 3;
+
+    var control_circle;
+
+    function width(node) {
+      if (node.children.length == 0) {
+        return 1;
+      } else {
+        return node.children.map(x => width(x)).reduce((a,b) => a+b, 0);
+      }
+    }
+
+    function depth(node) {
+      if (node.children.length == 0) {
+        return node.until;
+      } else {
+        return Math.max(...node.children.map(x => depth(x)));
+      }
+    }
+
+    function order(node) {
+      // arrange the order of nodes to be pleasing
+      node.children
+        .sort((a,b) => (a.name < b.name) ? -1 : (a.name > b.name) ? 1 : 0)
+        .sort((a,b) => depth(b) - depth(a))
+        .sort((a,b) => width(b) - width(a));
+
+      node.children.forEach(x => order(x));
+    }
+
+    function child_pad(height) {
+      // a function of height, scaled down as height decreases so less
+      // padding between thinner branches
+      return HEIGHT/height;
+    }
+
+    function drag_event(node, f) {
+      node.on('mousedown', () => draw.on('mousemove', f));
+      draw.on('mouseup', () => draw.off('mousemove'));
+      draw.on('mouseleave', () => draw.off('mousemove'));
+    }
+
+    function draw_tree(node, initial_x, initial_y, height) {
+
+      var extent = [initial_y - STROKE_WIDTH/2, initial_y];
+      var height_sum = 0;
+
+      for (var [i, child] of node.children.entries()) {
+
+        var child_height = (width(child) / width(node)) * (height - (node.children.length - 1) * child_pad(height));
+        var next_y = initial_y + height_sum + i * child_pad(height);
+
+        if (i == 0) extent[0] += child_height/2;
+
+        height_sum += child_height;
+
+        draw_tree(child, node.until*WIDTH, next_y, child_height);
+
+        extent[1] = next_y + child_height / 2 + STROKE_WIDTH/2;
+      }
+
+      var midpoint_y = initial_y + height / 2;
+
+      draw.line(initial_x, midpoint_y, node.until*WIDTH, midpoint_y)
+        .stroke({ width: STROKE_WIDTH, color: '#505050' });
+
+      // invisible line which is wider than visible line for catching mouse events
+      var click_line = draw.line(initial_x, midpoint_y, node.until*WIDTH, midpoint_y)
+        .stroke({ width: STROKE_WIDTH * 4, color: '#00000000' });
+
+      click_line
+        .on('mouseover', (e) => control_circle.fill('blue').center(mouse_pos(e).x, midpoint_y))
+        .on('mousemove', (e) => control_circle.animate(10,0,'now').center(mouse_pos(e).x, midpoint_y))
+        .on('mouseout', () => control_circle.fill('none'))
+        .click((event) => {
+          var x = mouse_pos(event).x / WIDTH;
+
+          var _node = Object.assign({}, node);
+
+          Object.assign(node, {
+            until: x, name: '???',
+            children: [_node, { until: 1, name: '???', children: [] }]
+          });
+
+          start();
+        });
+
+      var time_control_element;
+      if (node.children.length > 1) {
+        time_control_element = draw.line(node.until*WIDTH, extent[0], node.until*WIDTH, extent[1])
+          .stroke({ width: STROKE_WIDTH, color: '#505050' })
+          .addClass('interactive');
+      } else {
+        time_control_element = draw.circle(5).fill('#505050')
+          .center(node.until*WIDTH, midpoint_y)
+          .addClass('interactive');
+      }
+
+      drag_event(time_control_element, (event) => {
+        var x = mouse_pos(event).x / WIDTH;
+        node.until = Math.min(x, 1);
+        start();
+      });
+
+      if (node.name.length > 0) {
+        var text = draw.text(function(add) {
+          add.tspan(node.name).font({ style: 'italic' });
+          
+          if (node.until < 1 && node.children.length == 0) {
+            add.tspan(' (†)');
+          }
+        })
+          .move(node.until*WIDTH, midpoint_y)
+          .font({ fill: '#505050', family: 'arial' });
+        
+        var t_box = text.rbox();
+        text.dx(-t_box.width - 20);
+        text.dy(-t_box.height - 5);
+
+        if (node.children.length == 0) {
+          // if the node is terminal
+          if (t_box.width < (1 - node.until) * WIDTH - 20) {
+            // and theres room to the right of the point
+            text.move(node.until*WIDTH + 10, midpoint_y - t_box.height/2);
+            // put the text to the right of the node
+          }
+        }
+      }
+    }
+
+    function draw_scale() {
+      var COLOUR_HEAVY = '#d5d5d5';
+      var COLOUR_LIGHT = '#f2f2f2';
+
+      // top line
+      draw.line(0, 20, WIDTH, 20)
+        .stroke({ width: STROKE_WIDTH/1.5, color: COLOUR_HEAVY }).back();
+        
+      // bottom line
+      draw.line(0, HEIGHT-20, WIDTH, HEIGHT-20)
+        .stroke({ width: STROKE_WIDTH/1.5, color: COLOUR_HEAVY }).back();
+
+
+      var year_to_x = (year) => ( WIDTH*(year-start_time) ) / (end_time-start_time);
+      var x_to_year = (x) => ( start_time*(WIDTH-x) + end_time*x ) / WIDTH;
+
+
+      var baseline = end_time;
+      if (start_time < 0 && 0 < end_time) {
+        baseline = 0;
+      }
+
+      {
+        var x = year_to_x(baseline);
+
+        draw.line(x, 15, x, HEIGHT-15)
+          .stroke({ width: STROKE_WIDTH/1.5, color: COLOUR_LIGHT }).back();
+
+        var t1 = draw.text(baseline.toString()).center(x, 10).font({ fill: COLOUR_HEAVY, family: 'arial', size: 12 });
+        var t2 = draw.text(baseline.toString()).center(x, HEIGHT-2).font({ fill: COLOUR_HEAVY, family: 'arial', size: 12 });
+
+        [t1, t2].map(el => {
+          el.addClass('interactive');
+          drag_event(el, (event) => {
+            var year = x_to_year(mouse_pos(event).x);
+            start_time -= year;
+            end_time -= year;
+            start();
+          });
+        });
+    }
+
+
+      var timespan = end_time - start_time;
+      const IDEAL_NUM_LINES = 12;
+
+      var year_space = [10, 50, 100, 200, 250, 500, 1000, 2000, 2500, 5000, 10000]
+        .map(x => [x, Math.abs(IDEAL_NUM_LINES - timespan/x)])
+        .sort((a,b) => a[1] - b[1])[0][0];
+
+
+      var year = baseline;
+      var text_elements = [];
+
+      while (year < end_time) {
+        year += year_space;
+        var x = year_to_x(year);
+
+        draw.line(x, 15, x, HEIGHT-15)
+          .stroke({ width: STROKE_WIDTH/1.5, color: COLOUR_LIGHT }).back();
+
+        text_elements.push(draw.text(year.toString())
+          .center(x, 10).font({ fill: COLOUR_HEAVY, family: 'arial', size: 12 }));
+        text_elements.push(draw.text(year.toString())
+          .center(x, HEIGHT-2).font({ fill: COLOUR_HEAVY, family: 'arial', size: 12 }));
+      }
+
+      var year = baseline;
+
+      while (year > start_time) {
+        year -= year_space;
+        var x = year_to_x(year);
+
+        draw.line(x, 15, x, HEIGHT-15)
+          .stroke({ width: STROKE_WIDTH/1.5, color: COLOUR_LIGHT }).back();
+
+        text_elements.push(draw.text(year.toString())
+          .center(x, 10).font({ fill: COLOUR_HEAVY, family: 'arial', size: 12 }));
+        text_elements.push(draw.text(year.toString())
+          .center(x, HEIGHT-2).font({ fill: COLOUR_HEAVY, family: 'arial', size: 12 }));
+      }
+
+      text_elements.map(el => {
+        el.addClass('interactive');
+
+        var ti = parseFloat(el.node.textContent);
+        drag_event(el, (event) => {
+          var tf = x_to_year(mouse_pos(event).x);
+          start_time *= ti / tf;
+          end_time *= ti / tf;
+          start();
+        });
+      });
+
+    }
+
+    var data = document.getElementById('data');
+    var typing_timer;
+    var typing_interval = 500;
+
+    data.onkeyup = () => {
+      clearTimeout(typing_timer);
+      typing_timer = setTimeout(() => {
+        TREE = JSON.parse(data.value);
+        start();
+      }, typing_interval);
+    }
+    
+    data.onkeydown = () => {
+      clearTimeout(typing_timer);
+    }
+
+    var box = document.querySelector('input[type=checkbox]')
+    box.onclick = () => {
+      order_nodes = box.checked;
+      start();
+    };
+
+    function start() {
+      draw.clear();
+
+      validate_tree(TREE);
+
+      if (order_nodes)
+        order(TREE);
+
+      control_circle = draw.circle(10).fill('none').attr('id', 'control-circle')
+        .on('mouseover', (event) => control_circle.fill('blue'))
+        .on('mouseout', () => control_circle.fill('none'));
+
+      draw_tree(TREE, 0, 0.05*HEIGHT, 0.9*HEIGHT);
+      draw_scale();
+
+      draw.viewbox(-15, 0, WIDTH+30, HEIGHT);
+
+      control_circle.front();
+
+      data.value = JSON.stringify(TREE, null, 2)
+        .replace(/,\s+"/g, ', "')
+        .replace(/{\s+"/g, '{ "')
+        .replace(/]\s+}/g, '] }')
+        .replace(/(?<=\n\s*)  ] }/g, ']}');
+    }
+
+    start();
+
+  </script>
+</body>
+
+</html>
