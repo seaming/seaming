@@ -2,12 +2,11 @@
 <html>
 
 <head>
-  <title>tree test</title>
+  <title>Tree-er</title>
 
   <style>
     * { box-sizing: border-box; }
     #svg { margin: 80px auto 80px auto; width: min-content; }
-    svg { width: 1200px; height: 800px; }
     .data-container { margin: 80px auto 80px auto; width: 80%; }
     #data { width: 100%; display: block; padding: 20px; white-space: pre-wrap;
       font-family: monospace; font-size: 14px; border: 1px solid #e6e6e6;
@@ -117,11 +116,9 @@
   <script>
     // drawing script
 
-    var draw = SVG('svg');
+    const WIDTH = 1300;
 
-    var bBox = draw.node.getBoundingClientRect();
-    const WIDTH = bBox.width;
-    const HEIGHT = bBox.height;
+    var draw = SVG('svg').size(WIDTH, 800);
     
     function mouse_pos(evt) {
       var CTM = draw.node.getScreenCTM();
@@ -164,7 +161,7 @@
     function child_pad(height) {
       // a function of height, scaled down as height decreases so less
       // padding between thinner branches
-      return HEIGHT/height;
+      return 0.3 * draw.height()/height;
     }
 
     function drag_event(node, f) {
@@ -264,6 +261,8 @@
     function draw_scale() {
       var COLOUR_HEAVY = '#d5d5d5';
       var COLOUR_LIGHT = '#f2f2f2';
+
+      const HEIGHT = draw.height();
 
       // top line
       draw.line(0, 20, WIDTH, 20)
@@ -384,6 +383,9 @@
 
       validate_tree(TREE);
 
+      draw.height(Math.max(720, width(TREE) * 32));
+      // 32 is the height per node at which it starts getting crowded
+
       if (order_nodes)
         order(TREE);
 
@@ -391,10 +393,10 @@
         .on('mouseover', (event) => control_circle.fill('blue'))
         .on('mouseout', () => control_circle.fill('none'));
 
-      draw_tree(TREE, 0, 0.05*HEIGHT, 0.9*HEIGHT);
+      draw_tree(TREE, 0, 0.05*draw.height(), 0.9*draw.height());
       draw_scale();
 
-      draw.viewbox(-15, 0, WIDTH+30, HEIGHT);
+      draw.viewbox(-15, 0, WIDTH+30, draw.height());
 
       control_circle.front();
 
