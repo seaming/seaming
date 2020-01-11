@@ -103,7 +103,7 @@
       for (var i = 0; i < node.children.length; i++) {
         var child = node.children[i];
 
-        if (child.until < node.until) {
+        if (child.until <= node.until) {
           if (FIX_ON_INVALID) {
             node.children.splice(i, 1, ...child.children);
             i += child.children.length - 1;
@@ -269,6 +269,8 @@
 
       const HEIGHT = draw.height();
 
+      const INTERVALS = [10, 50, 100, 200, 250, 500, 1000, 2000, 2500, 5000, 10000];
+
       // top line
       draw.line(0, 20, WIDTH, 20)
         .stroke({ width: STROKE_WIDTH/1.5, color: COLOUR_HEAVY }).back();
@@ -284,9 +286,11 @@
       var text_elements = [];
 
 
-      var baseline = end_time;
-      if (start_time < 0 && 0 < end_time) {
-        baseline = 0;
+      var baseline = 0;
+      if (!(start_time < 0 && 0 < end_time)) {
+        baseline = INTERVALS
+          .map(x => [x, end_time % x])
+          .sort((a,b) => a[1] - a[0])[0][0];
       }
 
       {
@@ -305,7 +309,7 @@
       var timespan = end_time - start_time;
       const IDEAL_NUM_LINES = 12;
 
-      var year_space = [10, 50, 100, 200, 250, 500, 1000, 2000, 2500, 5000, 10000]
+      var year_space = INTERVALS
         .map(x => [x, Math.abs(IDEAL_NUM_LINES - timespan/x)])
         .sort((a,b) => a[1] - b[1])[0][0];
 
@@ -418,7 +422,7 @@
         .replace(/,\s+"/g, ', "')
         .replace(/{\s+"/g, '{ "')
         .replace(/]\s+}/g, '] }')
-        .replace(/(?<=\n\s*)  ] }/g, ']}');
+        .replace(/(\n\s*)  ] }/g, '$1]}');
     }
 
     start();
