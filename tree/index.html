@@ -16,6 +16,7 @@
     .interactive { cursor: move; }
     .locked { fill: blue; }
     svg text { user-select: none; }
+    button { float: right; }
   </style>
 
   <script src="https://cdn.jsdelivr.net/npm/@svgdotjs/svg.js@3.0/dist/svg.min.js"></script>
@@ -30,6 +31,7 @@
     <span class="label">
       <input type="checkbox" checked>
       Sort nodes automatically</span>
+    <button onclick="download();">Download SVG</button>
     <textarea id="data" rows="20"></textarea>
   </div>
 
@@ -198,7 +200,8 @@
 
       // invisible line which is wider than visible line for catching mouse events
       var click_line = draw.line(initial_x, midpoint_y, node.until*WIDTH, midpoint_y)
-        .stroke({ width: STROKE_WIDTH * 4, color: '#00000000' });
+        .stroke({ width: STROKE_WIDTH * 4, color: '#00000000' })
+        .addClass('hidden-element');
 
       click_line
         .on('mouseover', (e) => control_circle.fill('blue').center(mouse_pos(e).x, midpoint_y))
@@ -401,7 +404,8 @@
 
       control_circle = draw.circle(10).fill('none').attr('id', 'control-circle')
         .on('mouseover', (event) => control_circle.fill('blue'))
-        .on('mouseout', () => control_circle.fill('none'));
+        .on('mouseout', () => control_circle.fill('none'))
+        .addClass('hidden-element');
 
       draw_tree(TREE, 0, 0.05*draw.height(), 0.9*draw.height());
       draw_scale();
@@ -418,6 +422,29 @@
     }
 
     start();
+
+    function download() {
+      // first clean up interaction elements
+
+      draw.find('.hidden-element').remove();
+      draw.find('.interactive').removeClass('interactive');
+
+      // now serialise it
+      var serialiser = new XMLSerializer();
+      var source = serialiser.serializeToString(draw.node);
+      var url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(source);
+
+      var a = document.createElement('a');
+
+      a.href = url;
+      a.download = 'tree.svg';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+
+      start(); // redraw the svg to fix the interaction elements
+    }
 
   </script>
 </body>
