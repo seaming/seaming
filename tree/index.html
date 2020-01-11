@@ -14,6 +14,7 @@
     .label { display: inline-block; margin: 0px 0px 8px 8px; }
     #control-circle { pointer-events: none; }
     .interactive { cursor: move; }
+    .locked { fill: blue; }
     svg text { user-select: none; }
   </style>
 
@@ -37,6 +38,7 @@
 
     var start_time = -3555;
     var end_time = 2020;
+    var fixed_time = undefined;
 
     var TREE = {
       until: 0.05, name: "PIE",
@@ -276,6 +278,8 @@
       var year_to_x = (year) => ( WIDTH*(year-start_time) ) / (end_time-start_time);
       var x_to_year = (x) => ( start_time*(WIDTH-x) + end_time*x ) / WIDTH;
 
+      var text_elements = [];
+
 
       var baseline = end_time;
       if (start_time < 0 && 0 < end_time) {
@@ -288,19 +292,11 @@
         draw.line(x, 15, x, HEIGHT-15)
           .stroke({ width: STROKE_WIDTH/1.5, color: COLOUR_LIGHT }).back();
 
-        var t1 = draw.text(baseline.toString()).center(x, 10).font({ fill: COLOUR_HEAVY, family: 'arial', size: 12 });
-        var t2 = draw.text(baseline.toString()).center(x, HEIGHT-2).font({ fill: COLOUR_HEAVY, family: 'arial', size: 12 });
-
-        [t1, t2].map(el => {
-          el.addClass('interactive');
-          drag_event(el, (event) => {
-            var year = x_to_year(mouse_pos(event).x);
-            start_time -= year;
-            end_time -= year;
-            start();
-          });
-        });
-    }
+        text_elements.push(draw.text(baseline.toString())
+          .center(x, 10).font({ fill: COLOUR_HEAVY, family: 'arial', size: 12 }));
+        text_elements.push(draw.text(baseline.toString())
+          .center(x, HEIGHT-2).font({ fill: COLOUR_HEAVY, family: 'arial', size: 12 }));
+      }
 
 
       var timespan = end_time - start_time;
@@ -312,7 +308,6 @@
 
 
       var year = baseline;
-      var text_elements = [];
 
       while (year < end_time) {
         year += year_space;
@@ -342,18 +337,33 @@
           .center(x, HEIGHT-2).font({ fill: COLOUR_HEAVY, family: 'arial', size: 12 }));
       }
 
+
       text_elements.map(el => {
         el.addClass('interactive');
+        var t = parseFloat(el.node.textContent);
 
-        var ti = parseFloat(el.node.textContent);
+        if (t == fixed_time) el.addClass('locked');
+
+        el.on('dblclick', (event) => {
+          text_elements.filter(x => x != el).map(x => x.removeClass('locked'));
+          el.toggleClass('locked');
+          fixed_time = el.hasClass('locked') ? t : undefined;
+        });
+
         drag_event(el, (event) => {
-          var tf = x_to_year(mouse_pos(event).x);
-          start_time *= ti / tf;
-          end_time *= ti / tf;
+          if (fixed_time == t || fixed_time == undefined) {
+            var year = x_to_year(mouse_pos(event).x);
+            start_time -= year - t;
+            end_time -= year - t;
+          } else {
+            var tf = x_to_year(mouse_pos(event).x);
+            start_time = (start_time - fixed_time) * (t - fixed_time) / (tf - fixed_time) + fixed_time;
+            end_time = (end_time - fixed_time) * (t - fixed_time) / (tf - fixed_time) + fixed_time;
+          }
+
           start();
         });
       });
-
     }
 
     var data = document.getElementById('data');
