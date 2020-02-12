@@ -11,7 +11,8 @@
     #data { width: 100%; display: block; padding: 20px; white-space: pre-wrap;
       font-family: monospace; font-size: 14px; border: 1px solid #e6e6e6;
       border-radius: 8px; resize: vertical;}
-    .label { display: inline-block; margin: 0px 0px 8px 8px; }
+    .label { display: inline-block; margin: 0px 0px 2px 8px; }
+    .label:last-of-type { margin-bottom: 8px; }
     #control-circle { pointer-events: none; }
     .interactive { cursor: move; }
     .locked { fill: blue; }
@@ -29,8 +30,11 @@
 
   <div class="data-container">
     <span class="label">
-      <input type="checkbox" checked>
-      Sort nodes automatically</span>
+      <input id="order-nodes" type="checkbox" checked>
+      Sort nodes automatically</span><br>
+      <span class="label">
+        <input id="draw-scale" type="checkbox" checked>
+        Draw scale</span>
     <button onclick="download();">Download SVG</button>
     <textarea id="data" rows="20"></textarea>
   </div>
@@ -96,10 +100,14 @@
     
     const FIX_ON_INVALID = true;
     var order_nodes = true;
+    var draw_timescale = true;
 
     function validate_tree(node) {
       for (var i = 0; i < node.children.length; i++) {
         var child = node.children[i];
+
+        delete child.start;
+        delete child.end;
 
         if (child.until <= node.until) {
           if (FIX_ON_INVALID) {
@@ -390,16 +398,34 @@
       clearTimeout(typing_timer);
     }
 
-    var box = document.querySelector('input[type=checkbox]')
+    var box = document.querySelector('#order-nodes')
     box.onclick = () => {
       order_nodes = box.checked;
+      start();
+    };
+
+    var box = document.querySelector('#draw-scale')
+    box.onclick = () => {
+      draw_timescale = box.checked;
       start();
     };
 
     function start() {
       draw.clear();
 
-      validate_tree(TREE);
+      { 
+        // validate_tree strips the start and end attributes
+        // to remove them from non-root nodes, so store them
+        // and re-add them after
+
+        let s = TREE.start;
+        let e = TREE.end;
+
+        validate_tree(TREE);
+
+        TREE.start = s;
+        TREE.end = e;
+      }
 
       draw.height(Math.max(720, width(TREE) * 32));
       // 32 is the height per node at which it starts getting crowded
@@ -413,7 +439,9 @@
         .addClass('hidden-element');
 
       draw_tree(TREE, 0, 0.05*draw.height(), 0.9*draw.height());
-      draw_scale();
+
+      if (draw_timescale)
+        draw_scale();
 
       draw.viewbox(-15, 0, WIDTH+30, draw.height());
 
