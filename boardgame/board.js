@@ -363,6 +363,9 @@ class Board {
                             // if the piece has a moveset that allows it to reach the destination
                             else if (pkind.movesets.some(f => f(this, piece, grid_x, grid_y)))
                                 this.move_to(piece, grid_x, grid_y);
+
+                            else
+                                this.draw();
                         }
                     }
                 }
