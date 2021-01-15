@@ -30,15 +30,10 @@
       cursor: pointer; 
     }
 
-    .presets {
-      display: flex;
-      flex-direction: column;
+    #presets {
       position: absolute;
-      top: 40px; left: 50px;
-    }
-
-    .presets button {
-      margin-bottom: 10px;
+      top: 50px; left: 40px;
+      padding: 5px 6px;
     }
   </style>
 
@@ -46,11 +41,12 @@
 </head>
 
 <body>
-  <div class="presets">
-    <button id="chess-btn">Chess</button>
-    <button id="xiangqi-btn">Xiangqi</button>
-    <button id="tablut-btn">Tablut</button>
-  </div>
+  <select name="cars" id="presets" onchange="set_game(this.value);">
+    <option selected disabled hidden>Select</option>
+    <option>Chess</option>
+    <option>Xiangqi</option>
+    <option>Tablut</option>
+  </select>
 
   <div id="svg">
     <svg></svg>
@@ -69,16 +65,8 @@
     const WINDOW_SIZE = 600;
     let draw = SVG('svg').size(WINDOW_SIZE, WINDOW_SIZE);
 
-    document.getElementById('chess-btn').onclick = () => {
-      chess(draw).draw();
-    };
-
-    document.getElementById('xiangqi-btn').onclick = () => {
-      xiangqi(draw).draw();
-    };
-
-    document.getElementById('tablut-btn').onclick = () => {
-      tablut(draw).draw();
-    };
+    function set_game(game) {
+      window[game.toLowerCase()](draw).draw();
+    }
   </script>
 </body>
