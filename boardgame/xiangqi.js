@@ -2,6 +2,8 @@ function xiangqi(draw) {
     let board = new BoardBuilder(draw)
         .size(9, 10)
         .piece_on_vertex()
+        .cross([4,1], [6,3])
+        .cross([4,8], [6,10])
         .break_after_rank(5)
         .build();
 

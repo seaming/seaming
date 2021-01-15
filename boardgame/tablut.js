@@ -4,6 +4,7 @@ function tablut(draw) {
         .piece_in_square()
         .odd_checkerboard('#f7cfa4')
         .even_checkerboard('#c78d53')
+        .cross([5,5], [5,5])
         .no_tile_edges()
         .text_style({ size: '40pt' })
         .build();

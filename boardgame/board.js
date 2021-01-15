@@ -167,6 +167,25 @@ class Board {
                 }
             }
 
+            this.styling.crosses.forEach(cross => {
+                let [p1, p2] = cross;
+                let [x1, y1] = p1;
+                let [x2, y2] = p2;
+                [x1, x2] = [Math.min(x1, x2), Math.max(x1, x2)];
+                [y1, y2] = [Math.min(y1, y2), Math.max(y1, y2)];
+
+                x1 = (x1 - 1.5) * this.cs + this.x_start + this.cs / 2;
+                y1 = (y1 - 1.5) * this.cs + this.y_start + this.cs / 2;
+                x2 = (x2 - 0.5) * this.cs + this.x_start + this.cs / 2;
+                y2 = (y2 - 0.5) * this.cs + this.y_start + this.cs / 2;
+
+                let mask = this._draw.mask();
+                mask.add(this._draw.rect(Math.abs(x2 - x1), Math.abs(y2 - y1)).move(x1, y1).fill('#fff'));
+
+                this._draw.line(x1, y1, x2, y2).stroke(this.styling.line_style).maskWith(mask);
+                this._draw.line(x1, y2, x2, y1).stroke(this.styling.line_style).maskWith(mask);
+            });
+
         } else if (this.piece_position === PiecePositionModes.vertex) {
 
             if (this.styling.background_color !== null)
@@ -210,6 +229,26 @@ class Board {
                         grid_dots(x + 2, y + 2, _x + this.cs, _y + this.cs);
                 }
             }
+
+            this.styling.crosses.forEach(cross => {
+                let [p1, p2] = cross;
+                let [x1, y1] = p1;
+                let [x2, y2] = p2;
+
+                if (x1 == x2 || y1 == y2)
+                    return;
+
+                x1 = (x1 - 1) * this.cs + this.x_start + this.cs / 2;
+                y1 = (y1 - 1) * this.cs + this.y_start + this.cs / 2;
+                x2 = (x2 - 1) * this.cs + this.x_start + this.cs / 2;
+                y2 = (y2 - 1) * this.cs + this.y_start + this.cs / 2;
+
+                let mask = this._draw.mask();
+                mask.add(this._draw.rect(Math.abs(x2 - x1), Math.abs(y2 - y1)).move(x1, y1).fill('#fff'));
+
+                this._draw.line(x1, y1, x2, y2).stroke(this.styling.line_style).maskWith(mask);
+                this._draw.line(x1, y2, x2, y1).stroke(this.styling.line_style).maskWith(mask);
+            });
         }
     }
 
@@ -398,6 +437,7 @@ class BoardBuilder {
             even_checkerboard: null,
             line_style: null,
             text_style: null,
+            crosses: [],
         };
         this.piece_position = null;
         this.rank_breaks = [];
@@ -451,6 +491,11 @@ class BoardBuilder {
         if (this.styling.even_checkerboard !== null)
             throw Error('Cannot double assign board checkering style.');
         this.styling.even_checkerboard = value;
+        return this;
+    }
+
+    cross(p1, p2) {
+        this.styling.crosses.push([p1, p2]);
         return this;
     }
 
