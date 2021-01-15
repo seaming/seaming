@@ -5,6 +5,7 @@ function tablut(draw) {
         .odd_checkerboard('#f7cfa4')
         .even_checkerboard('#c78d53')
         .cross([5,5], [5,5])
+        .line_style({ color: '#f7cfa4', width: 5 })
         .no_tile_edges()
         .text_style({ size: '40pt' })
         .build();
