@@ -1,7 +1,7 @@
 const PiecePositionModes = Object.freeze({ "cell": 1, "vertex": 2 });
 
 const DEFAULT_LINE_STYLE = { color: '#333333', width: 2, linecap: 'square' };
-const DEFAULT_TEXT_STYLE = { size: '20pt', family: 'Arial' };
+const DEFAULT_TEXT_STYLE = { size: 20, family: 'Arial' };
 
 class Board {
     constructor(draw, width, height, piece_position, styling, breaks) {
@@ -32,6 +32,7 @@ class Board {
         this.all_tiles.forEach(idx => this.capture_dots[idx] = undefined);
 
         this.active = false;
+        this.paused = false;
 
         // board drawing constants
         if (this.piece_position === PiecePositionModes.cell) {
@@ -289,6 +290,9 @@ class Board {
             let pkind = this.piece_kinds[piece.kind];
 
             g.on('mousedown', () => {
+                if (this.paused)
+                    return;
+
                 if (piece.team != this.active_team)
                     return;
 
@@ -314,6 +318,9 @@ class Board {
                 this.movement_dots[[piece.x, piece.y]].hide();
 
                 this._draw.on('mousemove', (event) => {
+                    if (this.paused)
+                        return;
+
                     let mouse = mouse_pos(event);
                     g.center(mouse.x, mouse.y);
                 });
@@ -358,8 +365,6 @@ class Board {
                                 this.move_to(piece, grid_x, grid_y);
                         }
                     }
-
-                    this.draw();
                 }
             });
         }
@@ -369,6 +374,8 @@ class Board {
         if (this.piece_map[[x, y]] != undefined)
             throw Error('Cannot move to an occupied tile.')
 
+        this.paused = true;
+
         let idx = this.piece_map[[moving.x, moving.y]];
         this.piece_map[[moving.x, moving.y]] = undefined;
         this.piece_map[[x, y]] = idx;
@@ -376,7 +383,53 @@ class Board {
         moving.x = x;
         moving.y = y;
 
+        for (let promotion of this.piece_kinds[moving.kind].promotions) {
+            let kinds = promotion[0];
+            let f = promotion[1];
+
+            if (f(this, moving, x, y)) {
+                this.offer_promotion(moving, kinds);
+                return;
+            }        
+        }
+
+        this.finish_turn();
+    }
+
+    finish_turn() {
         this.next_team();
+        this.draw();
+        this.paused = false;
+    }
+
+    offer_promotion(piece, kinds) {
+        const PAD = 10;
+
+        let box = this._draw.rect(kinds.length * (this.piece_diameter + PAD) + PAD, this.piece_diameter + 2 *  PAD)
+            .center(WINDOW_SIZE / 2, WINDOW_SIZE / 2)
+            .fill(this.styling.background_color != null ? this.styling.background_color : 'none').opacity(0.6)
+            .stroke(this.styling.line_style).radius(10);
+
+        let options = [];
+        for (let [i, kind] of kinds.entries()) {
+            let option = this._draw.text(this.piece_kinds[kind].symbol)
+                .addClass('promote-select')
+                .font(this.styling.text_style)
+                .fill(this.teams[piece.team].color)
+                .center(WINDOW_SIZE / 2, WINDOW_SIZE / 2)
+                .dx((i - kinds.length / 2 + 0.5) * (this.piece_diameter + PAD));
+
+            options.push(option);
+
+            option.on('mouseover', () => option.scale(1.5));
+            option.on('mouseout', () => option.scale(1 / 1.5));
+            option.on('click', () => {
+                box.remove();
+                options.forEach(x => x.remove());
+                piece.kind = kind;
+                this.finish_turn();
+            });
+        }
     }
 
     find_indirect_captures(piece, x, y) {

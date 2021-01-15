@@ -2,6 +2,7 @@ function chess(draw) {
     let board = new BoardBuilder(draw)
         .size(8, 8)
         .piece_in_square()
+        .background('#c9c9c9')
         .odd_checkerboard('#f7cfa4')
         .even_checkerboard('#c78d53')
         .no_tile_edges()
@@ -32,12 +33,15 @@ function chess(draw) {
     let black_pawn = board.piece_kind().name('Pawn').symbol('♟')
         .has_moveset(m => m.signed_y_delta(1).fix_x())
         .has_moveset(m => m.y_condition(y => y == 2).signed_y_delta(2).fix_x())
-        .has_captures(c => c.signed_y_delta(1).unsigned_x_delta(1));
+        .has_captures(c => c.signed_y_delta(1).unsigned_x_delta(1))
+        .has_promotion([bishop, knight, rook, queen], (b,p,x,y) => y == 8);
 
     let white_pawn = board.piece_kind().name('Pawn').symbol('♟')
         .has_moveset(m => m.signed_y_delta(-1).fix_x())
         .has_moveset(m => m.y_condition(y => y == 7).signed_y_delta(-2).fix_x())
-        .has_captures(c => c.signed_y_delta(-1).unsigned_x_delta(1));
+        .has_captures(c => c.signed_y_delta(-1).unsigned_x_delta(1))
+        .has_promotion([bishop, knight, rook, queen], (b,p,x,y) => y == 1);
+
 
     board.add_piece(p => p.is(king).on_team(black).at(5, 1));
     board.add_piece(p => p.is(queen).on_team(black).at(4, 1));

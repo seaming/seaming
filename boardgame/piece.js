@@ -296,7 +296,7 @@ class MovesetBuilder {
 }
 
 class PieceKind {
-    constructor(name, symbol, movesets, captures) {
+    constructor(name, symbol, movesets, captures, promotions) {
         this.name = name;
         this.symbol = symbol;
 
@@ -334,6 +334,7 @@ class PieceKind {
         }
 
         this.movesets = movesets.map(x => x.nobody_at_destination().build());
+        this.promotions = promotions.map(x => [x[0].map(y => y.idx), x[1]]);
     }
 }
 
@@ -345,6 +346,7 @@ class PieceKindBuilder {
         this.movesets = [];
         this.captures = [];
         this._indirect_captures = null;
+        this.promotions = [];
     }
 
     name(n) {
@@ -392,8 +394,16 @@ class PieceKindBuilder {
         return this;
     }
 
+    has_promotion(kind, f) {
+        // f is a function (board, piece, x, y) => bool that evaluates whether a piece can promote at x,y
+        if (!Array.isArray(kind))
+            kind = [kind];
+        this.promotions.push([kind, f]);
+        return this;
+    }
+
     build() {
-        return new PieceKind(this._name, this._symbol, this.movesets, this.captures);
+        return new PieceKind(this._name, this._symbol, this.movesets, this.captures, this.promotions);
     }
 }
 
