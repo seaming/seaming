@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Boardgame</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    #svg {
+      margin: 50px auto auto auto;
+      width: min-content;
+    }
+
+    .piece {
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    .piece.active {
+      cursor: move;
+    }
+
+    .presets {
+      display: flex;
+      flex-direction: column;
+      position: absolute;
+      top: 40px; left: 50px;
+    }
+
+    .presets button {
+      margin-bottom: 10px;
+    }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/@svgdotjs/svg.js@3.0/dist/svg.min.js"></script>
+</head>
+
+<body>
+  <div class="presets">
+    <button id="chess-btn">Chess</button>
+    <button id="xiangqi-btn">Xiangqi</button>
+    <button id="tablut-btn">Tablut</button>
+  </div>
+
+  <div id="svg">
+    <svg></svg>
+  </div>
+
+  <script src="util.js" type="text/javascript" charset="utf-8"></script>
+  <script src="board.js" type="text/javascript" charset="utf-8"></script>
+  <script src="team.js" type="text/javascript" charset="utf-8"></script>
+  <script src="piece.js" type="text/javascript" charset="utf-8"></script>
+
+  <script src="chess.js" type="text/javascript" charset="utf-8"></script>
+  <script src="xiangqi.js" type="text/javascript" charset="utf-8"></script>
+  <script src="tablut.js" type="text/javascript" charset="utf-8"></script>
+
+  <script>
+    const WINDOW_SIZE = 600;
+    let draw = SVG('svg').size(WINDOW_SIZE, WINDOW_SIZE);
+
+    document.getElementById('chess-btn').onclick = () => {
+      chess(draw).draw();
+    };
+
+    document.getElementById('xiangqi-btn').onclick = () => {
+      xiangqi(draw).draw();
+    };
+
+    document.getElementById('tablut-btn').onclick = () => {
+      tablut(draw).draw();
+    };
+  </script>
+</body>
