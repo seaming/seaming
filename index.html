@@ -4,51 +4,44 @@
   <title>hi im felix</title>
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
-      margin: 0;
-      font-size: 12pt;
-      font-family: Helvetica;
+      margin: 100px 24% 100px 24%; padding: 0% 0% 0% 0%;
+      font: 14pt sans-serif; color: #292929;
       line-height: 1.5em;
-      color: #292929;
-      margin: 4% 15% 15% 15%;
-      padding: 0% 0% 0% 0%;
     }
 
-    li {
-      margin: 6px 0px;
-    }
+    a { text-decoration: none; color: #b22c11; }
+    a.link { display: block; width: 100%; padding: 10px 20px; background: #db482903; }
+    a.link:not(:last-child) { border-bottom: 1px solid #db4829; }
+    a.link:hover { background: #db642933; }
+    .contact { display: inline-block; background: #efefef; padding: 1px 5px; border-radius: 4px; }
+    .link-block { border: 1px solid #db4829; border-radius: 4px; }
 
-    a {
-      text-decoration: none;
-    }
-
-    ul {
-      list-style: none;
-      padding-left: 30px;
-    }
-
-    ul li::before {
-      content: "-";
-      margin-right: 10px;
-    }
+    h1 { font: normal 16pt sans-serif; margin-bottom: 4px; margin-left: 6px; }
+    h1::before { content: '#'; margin-right: 12px; }
   </style>
 </head>
 
 <body>
+  <p>Kia ora! I'm felix.</p>
+
   <p>
-    Hi! I'm felix, I do language things mostly.<br>
-    Here's some links to some things I've done.
+    I'm a university student studying physics and linguistics in New Zealand.
+    You can contact me at <a class="contact" href="mailto:eamingk@gmail.com">eamingk@gmail.com</a>
+    or on Discord at <span class="contact">skikkju#8926</span>.
   </p>
 
-  <ul>
-    <li><a href="phonemes">Phonology analyser</a></li>
-    <li><a href="maps">Semantic maps</a></li>
-    <li><a href="grammars">Languages I've made</a></li>
-  </ul>
+  <p>This page lists various things I've made.</p>
+
+  <h1>Tools</h1>
+
+  <div class="link-block">
+    <a class="link" href="phonemes">Phonology analyser</a>
+    <a class="link" href="maps">Semantic maps</a>
+    <a class="link" href="tree">Family tree drawer</a>
+  </div>
 </body>
 
 </html>
