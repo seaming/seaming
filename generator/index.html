@@ -367,10 +367,10 @@
       var probabilities = Object.entries(PHONEME_COOCCURRENCES[phoneme]).map((k,v) => {
         var weight = phoneme_distance(phoneme, k[0]);
         length += weight;
-        return (k[0] in inventory ? k[1] : -k[1]) * weight;
+        return (inventory.has(k[0]) ? k[1] : -k[1]) * weight;
       });
 
-      probabilities = probabilities.concat(inventory.map(p => {
+      probabilities = probabilities.concat([...inventory].map(p => {
         var weight = phoneme_distance(phoneme, p);
         length += weight;
         return (PHONEME_COOCCURRENCES[p][phoneme] || -1.0) * weight;
@@ -382,7 +382,7 @@
       var size_stability = 0;
       
       if (Math.abs(sigma) > 0) {
-        var x = inventory.length;
+        var x = inventory.size;
         var exponent = 0.5 * ((x - mean) / sigma) * ((x - mean) / sigma);
 
         size_stability = (INVERSE_SQRT_2_PI / sigma) * Math.exp(-exponent);
@@ -394,12 +394,12 @@
     }
 
     function total_stability(inventory) {
-      var n = inventory.map(p => stability(p, inventory));
+      var n = [...inventory].map(p => stability(p, inventory));
       return n.length / n.reduce((a,b) => a+1/b, 0); // harmonic mean
     }
 
     function pick_next(inventory) {
-      var p = [...inventory.map(p => [p, stability(p, inventory)]).sort((a,b) => a[1] - b[1])][0][0];
+      var p = [...[...inventory].map(p => [p, stability(p, inventory)]).sort((a,b) => a[1] - b[1])][0][0];
       return select_random_weighted(PHONEME_COOCCURRENCES[p], inventory)
     }
 
@@ -409,26 +409,26 @@
       });
     }
 
-    var inventory = [''];
+    var inventory = new Set(['']);
     var stability_series = [];
 
     var a = -0.1; // lower bound of progress
     var b = 0.05; // upper bound of progress
 
     (async () => {
-      while ((inventory.length < 10) // minimum 10 phonemes
+      while ((inventory.size < 10) // minimum 10 phonemes
         || (stability_series[stability_series.length - 1] < b || Math.random() < .2)
       ) {
 
         var next = pick_next(inventory)
-        inventory.push(next);
+        inventory.add(next);
 
         var _stability = total_stability(inventory);
         stability_series.push(_stability);
         // console.log(stability_series[stability_series.length - 1]);
 
         progress.value = (_stability - a) / (b - a) * 100;
-        progress_text.innerText = inventory.length + ' phonemes.';
+        progress_text.innerText = (inventory.size - 1) + ' phonemes.';
 
         await allowUpdate();
       }
@@ -448,7 +448,7 @@
       }
 
     function parse_phono(phono) {
-      phono = phono.filter(function (it, i, ar) { return (ar.indexOf(it) === i) && (it.trim().length > 0); });
+      phono = [...phono].filter(x => x.trim().length > 0);
 
       if (phono.length < 1) {
         return;
@@ -458,7 +458,7 @@
       var unknowns = [];
 
       features.forEach(feature => {
-        if (phono.filter(x => feature_map[feature].includes(x)).length == 0) {
+        if (!phono.some(x => feature_map[feature].includes(remove_diacritics(x)))) {
           [...document.getElementsByClassName(feature)].forEach(e => e.remove());
         }
       });
