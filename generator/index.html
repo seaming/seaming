@@ -508,7 +508,7 @@
 
       [...document.getElementsByTagName('td')].forEach(e =>
         e.innerText = e.innerText.split(' ')
-          .sort((a,b) => (a.length - b.length))
+          .sort((a,b) => (b.length - a.length))
           .sort((a,b) => {
             var a_base = remove_diacritics(a);
             var b_base = remove_diacritics(b);
