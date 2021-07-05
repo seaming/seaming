@@ -1,7 +1,15 @@
 <html>
 
 <head>
-  <title>Phonology Analyser</title>
+  <meta charset="utf-8">
+  <meta property="og:title" content="Phonology analyser | seaming" />
+
+  <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
+  <meta name="theme-color" content="#ffffff">
+
+  <title>Phonology analyser | seaming</title>
 
   <style>
     * {
@@ -45,11 +53,11 @@
       display: none;
     }
 
-    .form {
-      margin-bottom: 60px;
+    .tables {
+      margin-top: 60px;
     }
 
-    .form-label {
+    .help {
       padding-bottom: 10px;
       color: #959595;
       font-size: small;
@@ -444,13 +452,18 @@
   <div class="body">
     <div class="form center">
       <div>
-        <div class="form-label">Input phonemes, whitespace delimited</div>
+        <div class="help">Input phonemes, whitespace delimited.</div>
         <textarea id="phono-input" cols=100 rows=3></textarea>
         <button onclick="parse_phono();">Analyse</button>
       </div>
     </div>
 
-    <div class="center">
+    <p class="help">
+      Hover over phonemes to see their absolute frequencies or click on a phoneme
+      to see the relative frequencies of other phonemes given that one.
+    </p>
+
+    <div class="center tables">
       <div class="phonotable">
         <div id="consonant-phono-table" class="hidden center">
           <table>
