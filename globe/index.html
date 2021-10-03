@@ -1,0 +1,107 @@
+<head>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: "Helvetica Neue", Helvetica, sans-serif;
+      font-size: 14px;
+      color: #333;
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <div id="map">
+  </div>
+
+  <script src="data.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@svgdotjs/svg.js@3.0/dist/svg.min.js"></script>
+  <!-- <script src="https://d3js.org/d3.v4.min.js"></script> -->
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <script>
+    let width = d3.select("#map").node().getBoundingClientRect().width;
+    let height = window.innerHeight;
+    const sensitivity = 75;
+
+    let svg = d3.select("#map")
+      .append("svg")
+      .attr("width", width)
+      .attr("height", height);
+
+    let projection = d3.geoOrthographic()
+      .scale(250)
+      .center([0, 0])
+      .rotate([0, -30])
+      .translate([width / 2, height*0.98 / 2]);
+
+    const initialScale = projection.scale();
+
+    let geoGenerator = d3.geoPath()
+      .projection(projection);
+
+    let draw = SVG('#map svg');
+
+    let oceanPattern = draw.pattern(300, 150, function(add) {
+      var animationTime = 0;
+      let makeCircle = (d,cx,cy) => {
+        add.circle(d).center(cx,cy)
+          .stroke({width:5, color:'cadetblue', opacity: 0.15}).fill('white')
+          .animate(1500, 0+animationTime, 'now').dmove(20,-20).ease('<>').loop({swing: true});
+        animationTime = (animationTime + 200) % (200*7);
+      }
+      for (var [cx,cy] of [[150,0], [0,75], [300,75], [150,150], [0,225], [300,225], [150,300]])
+        for (var d of [295, 255, 215, 175, 135, 95, 55])
+          makeCircle(d, cx, cy);
+    }).attr({ patternUnits: 'userSpaceOnUse' }).scale(0.2);
+
+    let backgroundCircle = svg.append("circle")
+      .attr('cx', width / 2)
+      .attr('cy', height*0.98 / 2)
+      .attr('r', projection.scale())
+      .attr('class', 'globe')
+      .attr("fill", oceanPattern);
+
+    svg.call(d3.drag().on('drag', (event) => {
+      const rotate = projection.rotate()
+      const k = sensitivity / projection.scale()
+      projection.rotate([
+        rotate[0] + event.dx * k,
+        rotate[1] - event.dy * k
+      ])
+      path = d3.geoPath().projection(projection)
+      svg.selectAll("path").attr("d", path)
+    }))
+      .call(d3.zoom().on('zoom', (event) => {
+        if (event.transform.k > 0.3) {
+          projection.scale(initialScale * event.transform.k);
+          path = d3.geoPath().projection(projection);
+          svg.selectAll("path").attr("d", path);
+          backgroundCircle.attr('r', projection.scale());
+        }
+        else {
+          event.transform.k = 0.3;
+        }
+      }));
+
+    function update(geojson) {
+      let u = svg.selectAll('path')
+        .data(geojson.features);
+
+      u.enter()
+        .append('path')
+        .attr('d', geoGenerator)
+        .attr("fill", "white")
+        .style('stroke', 'black');
+    }
+
+    update(geojson);
+
+    // d3.json('https://gist.githubusercontent.com/d3indepth/f28e1c3a99ea6d84986f35ac8646fac7/raw/c58cede8dab4673c91a3db702d50f7447b373d98/ne_110m_land.json')
+    //   .then(function(json) {
+    //   update(json);
+    // });
+  </script>
+
+</body>
