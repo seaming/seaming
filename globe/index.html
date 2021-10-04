@@ -1,11 +1,79 @@
 <head>
 
+  <title>Globe</title>
   <style>
     body {
       margin: 0;
       font-family: "Helvetica Neue", Helvetica, sans-serif;
-      font-size: 14px;
-      color: #333;
+      font-size: 14px; line-height: 1.4em;
+    }
+  
+    svg .location {
+      fill: rgba(255, 171, 52, 0.5);
+      stroke: black;
+    }
+
+    svg .location:hover {
+      fill: rgba(255, 171, 52, 0.85);
+    }
+
+    svg .coastline {
+      fill: white; stroke: black;
+    }
+
+    svg .label {
+      user-select: none;
+    }
+  
+    .boxes {
+      position: absolute;
+      width: 100%;
+      right: 50px; top: 55px;
+      display: flex;
+      flex-direction: row-reverse;
+      justify-content: flex-start;
+      column-gap: 10px;
+    }
+  
+    .box {
+      padding: 12px 15px;
+      background: white;
+      border: 1px solid black;
+      border-radius: 3px;
+      max-width: 380px;
+    }
+  
+    .box hr {
+      border: none;
+      border-top: 1px solid black;
+      margin: 10px -15px;
+    }
+  
+    .box hr.dashed {
+      border-top: 1px dashed black;
+    }
+
+    .box #sidebox-title {
+      margin-right: 24px;
+    }
+
+    .close {
+      position: absolute;
+      right: 24px;
+      top: 12px;
+    }
+
+    .close:hover {
+      color: #7b1a06;
+    }
+
+    .close:after {
+      position: absolute;
+      content: "\00d7";
+    }
+
+    .hidden {
+      display: none;
     }
   </style>
 
@@ -16,12 +84,32 @@
   <div id="map">
   </div>
 
-  <script src="data.js"></script>
+  <div class="boxes">
+    <fieldset id="sidebox" class="box hidden">
+      <span id="sidebox-title"></span><a class="close" onclick="closeButton(this);"></a><hr>
+      <span id="sidebox-content"></span>
+    </fieldset>
+  </div>
+
+  <script src="coastlines.js" charset="UTF-8"></script>
+  <script src="locations.js" charset="UTF-8"></script>
+  <script src="labels.js" charset="UTF-8"></script>
   <script src="https://cdn.jsdelivr.net/npm/@svgdotjs/svg.js@3.0/dist/svg.min.js"></script>
-  <!-- <script src="https://d3js.org/d3.v4.min.js"></script> -->
   <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
   <script>
-    let width = d3.select("#map").node().getBoundingClientRect().width;
+    let sidebox = document.getElementById('sidebox');
+    let sideboxTitle = document.getElementById('sidebox-title');
+    let sideboxContent = document.getElementById('sidebox-content');
+
+
+    function closeButton(element) {
+      while (!element.classList.contains('box'))
+        element = element.parentNode;
+      console.log(element);
+      element.classList.add('hidden');
+    }
+
+    let width = window.innerWidth;
     let height = window.innerHeight;
     const sensitivity = 75;
 
@@ -31,15 +119,14 @@
       .attr("height", height);
 
     let projection = d3.geoOrthographic()
-      .scale(250)
+      .scale(300)
       .center([0, 0])
       .rotate([0, -30])
-      .translate([width / 2, height*0.98 / 2]);
+      .translate([width/2*0.75, height*0.98/2]);
 
     const initialScale = projection.scale();
 
-    let geoGenerator = d3.geoPath()
-      .projection(projection);
+    let geoGenerator = d3.geoPath().projection(projection);
 
     let draw = SVG('#map svg');
 
@@ -57,51 +144,100 @@
     }).attr({ patternUnits: 'userSpaceOnUse' }).scale(0.2);
 
     let backgroundCircle = svg.append("circle")
-      .attr('cx', width / 2)
-      .attr('cy', height*0.98 / 2)
+      .attr('cx', width/2*0.75)
+      .attr('cy', height*0.98/2)
       .attr('r', projection.scale())
       .attr('class', 'globe')
       .attr("fill", oceanPattern);
 
-    svg.call(d3.drag().on('drag', (event) => {
-      const rotate = projection.rotate()
-      const k = sensitivity / projection.scale()
-      projection.rotate([
-        rotate[0] + event.dx * k,
-        rotate[1] - event.dy * k
-      ])
-      path = d3.geoPath().projection(projection)
-      svg.selectAll("path").attr("d", path)
-    }))
-      .call(d3.zoom().on('zoom', (event) => {
-        if (event.transform.k > 0.3) {
-          projection.scale(initialScale * event.transform.k);
-          path = d3.geoPath().projection(projection);
-          svg.selectAll("path").attr("d", path);
-          backgroundCircle.attr('r', projection.scale());
-        }
-        else {
-          event.transform.k = 0.3;
-        }
-      }));
+    function fixLabels() {
+      // sets textLength on textPath elements so they display appropriately
+      svg.selectAll('.label').each((d,i,n) => {
+        var self = d3.select(n[i]);
+        var pathLen = d3.select("#labelArc_"+i).node().getTotalLength();
+        self.attr("textLength", pathLen);
 
-    function update(geojson) {
-      let u = svg.selectAll('path')
-        .data(geojson.features);
+        var computedTextLength = Math.max(self.attr('computedTextLength'), self.node().getComputedTextLength());
+        self.attr('computedTextLength', computedTextLength);
 
-      u.enter()
-        .append('path')
-        .attr('d', geoGenerator)
-        .attr("fill", "white")
-        .style('stroke', 'black');
+        if (computedTextLength > pathLen) {
+          var textSize = (pathLen/computedTextLength * 10);
+          if (textSize > 5) {
+            self.classed('hidden', false);
+            self.attr('font-size', textSize+'pt')
+          } else {
+            self.classed('hidden', true);
+          }
+        } else {
+          self.classed('hidden', false);
+          self.attr('font-size', '10pt');
+        }
+      });
     }
 
-    update(geojson);
+    svg.call(d3.drag().on('drag', (event) => {
+      let rotate = projection.rotate();
+      let k = sensitivity / projection.scale();
+      projection.rotate([
+        rotate[0] + event.dx * k,
+        Math.min(Math.max(rotate[1] - event.dy * k, -90), 90) // clamp latitude to the range [-90, 90]
+      ]);
+      svg.selectAll("path").attr("d", geoGenerator);
+      fixLabels();
+    })).call(d3.zoom().on('zoom', (event) => {
+      if (event.transform.k > 0.3) {
+        projection.scale(initialScale * event.transform.k);
+        svg.selectAll("path").attr("d", geoGenerator);
+        backgroundCircle.attr('r', projection.scale());
+      } else {
+        event.transform.k = 0.3;
+      }
+      fixLabels();
+    }));
 
-    // d3.json('https://gist.githubusercontent.com/d3indepth/f28e1c3a99ea6d84986f35ac8646fac7/raw/c58cede8dab4673c91a3db702d50f7447b373d98/ne_110m_land.json')
-    //   .then(function(json) {
-    //   update(json);
-    // });
+    svg.selectAll('.coastlines')
+      .data(coastlines.features)
+      .enter().append('path')
+        .attr('d', geoGenerator)
+        .classed('coastline', true);
+
+    svg.selectAll('.locations')
+      .data(locations.features)
+      .enter().append('path')
+        .classed('location', true)
+        .on('click', (event, d) => {
+          sideboxTitle.innerText = d.properties.name;
+          sideboxContent.innerHTML = d.properties.description || '';
+          sidebox.classList.remove('hidden');
+        });
+
+    svg.selectAll('.labels')
+        .data(labels.features)
+        .enter().append('path')
+          .attr('d', geoGenerator)
+          .attr('fill', 'none')
+          .attr('stroke', 'none')
+          // .attr('stroke', 'red')
+          .attr("id", (d,i) => ("labelArc_"+i))
+    
+    svg.selectAll('.labels')
+      .data(labels.features)
+      .enter().append('text')
+        .append("textPath")
+          .attr("xlink:href", (d,i) => ("#labelArc_"+i))
+          .classed('label', true)
+          .attr('startOffset', '50%').attr('text-anchor', 'middle')
+          .attr('computedTextLength', (d,i,n) => d3.select(n[i]).node().getComputedTextLength())
+          .text(d => d.properties.label)
+
+    // var graticule = d3.geoGraticule();
+    // svg.selectAll('.graticule')
+    //   .data(graticule.lines())
+    //   .enter().append('path')
+    //     .attr('d', geoGenerator)
+    //     .attr('fill', 'none')
+    //     .style('stroke', 'black')
+    //     .style('opacity', 0.08);
   </script>
 
 </body>
