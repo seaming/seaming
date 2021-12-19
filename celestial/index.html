@@ -1,0 +1,35 @@
+<head>
+  <meta charset="UTF-8">
+  <title>Celestial mechalculator</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js"></script>
+</head>
+
+<body>
+
+<h1>Celestial mechalculator</h1>
+
+<div class="section-header">
+  <span class="title">Parent bodies</span>
+  <span class="subtitle">The star, or stars in a multiple-star system.</span>
+</div>
+
+<div class="body-list" id="primaries">
+  <div class="add-another" onclick="add_primary(this)">+</div>
+</div>
+
+<div class="section-header">
+  <span class="title">Child bodies</span>
+  <span class="subtitle">Planets orbiting the primary bodies.</span>
+</div>
+
+<div class="info warning" id="at-least-one-primary-warning">
+  You must add at least one primary before adding any children.</div>
+
+<div class="body-list" id="secondaries">
+  <div class="add-another" onclick="add_secondary(this)">+</div>
+</div>
+
+<span id="ruler"></span>
+
+</body>
