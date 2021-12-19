@@ -73,7 +73,7 @@ body {
     justify-content: start;
 }
 
-.input-row:not(:last-child) {
+.input-row:not(.input-row:last-of-type) {
     margin-bottom: .5rem;
 }
 
@@ -137,8 +137,10 @@ input[type=text]:disabled {
 .add-another {
     background-color: #f5f5f5;
     border-radius: var(--border-radius);
+    height: 1.5rem;
+    padding: calc((1.5rem - .85rem)/2) 0;
     text-align: center;
-    line-height: 1.5rem;
+    font-size: .85rem;
 }
 
 .add-another:hover {

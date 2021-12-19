@@ -62,7 +62,7 @@ function div_wrap(x) {
 }
 
 function delete_button(is_primary) {
-    var button = document.createElement('div');
+    var button = document.createElement('span');
     button.classList.add('delete');
     button.innerText = '×';
 
@@ -228,10 +228,17 @@ function add_secondary(caller) {
     el.appendChild(physical_properties);
 
     var rotation_rate = make_input_pair('Rotation rate', FREQUENCY, true);
+    var flattening_coefficient = make_input_pair('Flattening coefficient', DIMENSIONLESS, true);
 
     var fields = document.createElement('div');
     fields.classList.add('input-fields');
     fields.appendChild(rotation_rate);
+    fields.appendChild(flattening_coefficient);
+
+    linked_triple(density, rotation_rate, flattening_coefficient,
+        (n,f) => 15*Math.PI/4 * n*n/(GRAVITATIONAL_CONSTANT * f),
+        (d,f) => Math.sqrt(4 * f / (15 * Math.PI) * GRAVITATIONAL_CONSTANT * d),
+        (d,n) => 15*Math.PI/4 * n*n/(GRAVITATIONAL_CONSTANT * d));
 
     var rotational_properties = document.createElement('div');
     rotational_properties.classList.add('input-row');
@@ -239,7 +246,7 @@ function add_secondary(caller) {
     rotational_properties.append(fields);
     el.appendChild(rotational_properties);
 
-    var semimajor_axis = make_input_pair('Semimajor axis', LENGTH, true);
+    var semimajor_axis = make_input_pair('Semi-major axis', LENGTH, true);
     var periapsis = make_input_pair('Periapsis', LENGTH, true);
     var apoapsis = make_input_pair('Apoapsis', LENGTH, true);
     var eccentricity = make_input_pair('Eccentricity', DIMENSIONLESS, true);
@@ -253,10 +260,99 @@ function add_secondary(caller) {
     fields.appendChild(eccentricity);
     fields.appendChild(period);
 
+    var f = linked_pair(semimajor_axis, period,
+        t => Math.pow(t*t/(4*PI_SQ) * primary_total_mass() * GRAVITATIONAL_CONSTANT, 1/3),
+        a => 2 * Math.PI * Math.sqrt(a*a*a/(GRAVITATIONAL_CONSTANT * primary_total_mass())),
+        { 'watch': document.getElementById('primaries').querySelectorAll('input[name=mass]') });
+
+    primary_watchers.push(['mass', f]);
+
+    linked_triple(semimajor_axis, periapsis, apoapsis,
+        (p,a) => (p+a) / 2.0,
+        (sma,a) => 2.0 * sma - a,
+        (sma,p) => 2.0 * sma - p);
+    
+    linked_triple(semimajor_axis, periapsis, eccentricity,
+        (p,e) => p / (1-e),
+        (a,e) => a * (1-e),
+        (a,p) => 1 - p/a);
+
+    var orbital_properties = document.createElement('div');
+    orbital_properties.classList.add('input-row');
+    orbital_properties.appendChild(make_row_label('Orbital properties'));
+    orbital_properties.append(fields);
+    el.appendChild(orbital_properties);
+
+    {
+        var x = document.createElement('div');
+        x.innerHTML = '<div class="body-list"><div class="add-another" onclick="add_tertiary(this)">Add moon</div></div>';
+        el.appendChild(x.firstChild);
+    }
+
+    el.appendChild(delete_button());
+
+    caller.parentNode.insertBefore(el, caller);
+}
+
+function add_tertiary(caller) {
+    var el = document.createElement('div');
+    el.classList.add('body-entry');
+
+    el.appendChild(make_input_pair('Name'));
+
+    var mass = make_input_pair('Mass', MASS, true);
+    var radius = make_input_pair('Radius', LENGTH, true);
+    var density = make_input_pair('Density', DENSITY, true);
+    var surface_gravity = make_input_pair('Surface gravity', ACCELERATION, true);
+
+    var fields = document.createElement('div');
+    fields.classList.add('input-fields');
+    fields.appendChild(mass);
+    fields.appendChild(radius);
+    fields.appendChild(density);
+    fields.appendChild(surface_gravity);
+
+    linked_triple(mass, radius, density,
+        (r,d) => VOLUME_CONST*r*r*r * d,
+        (m,d) => Math.pow((m/d) / VOLUME_CONST, 1/3),
+        (m,r) => m / (VOLUME_CONST*r*r*r));
+
+    linked_triple(mass, radius, surface_gravity,
+        (r,g) => r*r*g / GRAVITATIONAL_CONSTANT,
+        (m,g) => Math.sqrt(GRAVITATIONAL_CONSTANT * m / g),
+        (m,r) => GRAVITATIONAL_CONSTANT * m / (r*r))
+
+    var physical_properties = document.createElement('div');
+    physical_properties.classList.add('input-row');
+    physical_properties.appendChild(make_row_label('Physical properties'));
+    physical_properties.append(fields);
+    el.appendChild(physical_properties);
+
+    var semimajor_axis = make_input_pair('Semi-major axis', LENGTH, true);
+    var periapsis = make_input_pair('Periapsis', LENGTH, true);
+    var apoapsis = make_input_pair('Apoapsis', LENGTH, true);
+    var eccentricity = make_input_pair('Eccentricity', DIMENSIONLESS, true);
+    var period = make_input_pair('Orbital period', DURATION, true);
+
+    var fields = document.createElement('div');
+    fields.classList.add('input-fields');
+    fields.appendChild(semimajor_axis);
+    fields.appendChild(periapsis);
+    fields.appendChild(apoapsis);
+    fields.appendChild(eccentricity);
+    fields.appendChild(period);
+
+    function primary_total_mass() {
+        var primary = caller.parentNode.parentNode;
+        var input = primary.querySelector('input[name=mass]');
+        var unit = input.nextSibling.innerText;
+        return unit_converter(unit, dimension(unit)[0])(parseFloat(input.value) || 0);
+    }
+
     linked_pair(semimajor_axis, period,
         t => Math.pow(t*t/(4*PI_SQ) * primary_total_mass() * GRAVITATIONAL_CONSTANT, 1/3),
         a => 2 * Math.PI * Math.sqrt(a*a*a/(GRAVITATIONAL_CONSTANT * primary_total_mass())),
-        { 'watch-primary': 'mass' });
+        { 'watch': caller.parentNode.parentNode.querySelectorAll('input[name=mass]') });
 
     linked_triple(semimajor_axis, periapsis, apoapsis,
         (p,a) => (p+a) / 2.0,
@@ -342,15 +438,17 @@ function linked_pair(a, b, f_a, f_b, params) {
     b.units.addEventListener('click', f);
 
     if (params !== undefined) {
-        if ('watch-primary' in params) {
-            var field = params['watch-primary'];
-            for (primary of document.querySelectorAll('#primaries .body-entry input[name='+field+']')) {
-                primary.addEventListener('input', f);
-                primary.nextSibling.addEventListener('click', f);
-            }
-            primary_watchers.push([field, f]);
+        if ('watch' in params) {
+            params['watch'].forEach(input => {
+                input.addEventListener('input', f);
+                var units = input.nextSibling;
+                if (units.classList.contains('units'))
+                    units.addEventListener('click', f);
+            });
         }
     }
+    
+    return f;
 }
 
 function linked_triple(a, b, c, f_a, f_b, f_c) {
