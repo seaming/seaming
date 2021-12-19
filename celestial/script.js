@@ -6,10 +6,10 @@ const GRAVITATIONAL_CONSTANT = 6.67430e-11;
 
 const MASS = ['kg', 'M🜨', 'M☉'];
 const LENGTH = ['m', 'km', 'R🜨', 'R☉', 'AU'];
-const DENSITY = ['kg m⁻³', 'g cm⁻³'];
+const DENSITY = ['kg/m³', 'g/cm³'];
 const DURATION = ['s', 'hour', 'day', 'year'];
-const FREQUENCY = ['s⁻¹', 'hour⁻¹', 'day⁻¹', 'year⁻¹'];
-const ACCELERATION = ['m s⁻²', 'g'];
+const FREQUENCY = ['Hz', 'per hour', 'per day', 'per year'];
+const ACCELERATION = ['m/s²', 'g'];
 const DIMENSIONLESS = [];
 
 const SYMBOL_TABLE = {
@@ -21,17 +21,17 @@ const SYMBOL_TABLE = {
     'R🜨': 6371000.0, // m
     'R☉': 696340000.0, // m
     'AU': 149597870700.0, // m
-    'g cm⁻³': 1000.0,
-    'kg m⁻³': 1.0,
+    'g/cm³': 1000.0,
+    'kg/m³': 1.0,
     's': 1.0,
     'hour': 60.0, // s
     'day': 86400.0, // s
     'year': 31557600.0, // s
-    's⁻¹': 1.0,
-    'hour⁻¹': 1.0 / 60.0, // s⁻¹
-    'day⁻¹': 1.0 / 86400.0, // s⁻¹
-    'year⁻¹': 1.0 / 31557600.0, // s⁻¹
-    'm s⁻²': 1.0,
+    'Hz': 1.0,
+    'per hour': 1.0 / 60.0, // Hz
+    'per day': 1.0 / 86400.0, // Hz
+    'per year': 1.0 / 31557600.0, // Hz
+    'm/s²': 1.0,
     'g': 9.80665, // m s⁻²
 }
 
@@ -95,7 +95,12 @@ function make_input_pair(name, units, prepend_name) {
         input.placeholder = name;
 
     input.oninput = () => {
-        input.style.width = input.value.length > 0 ? measure_text_length(input.value) + "px" : "4em";
+        if (input.value.length > 0)
+            input.style.width = measure_text_length(input.value) + "px";
+        else if (!prepend_name)
+            input.style.width = measure_text_length(name) + "px";
+        else
+            input.style.width = "3em";
     }
     input.oninput();
 
