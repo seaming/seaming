@@ -50,6 +50,7 @@ body {
 }
 
 .body-entry {
+    position: relative;
     padding: .5rem .25rem;
     border-bottom: 1px solid var(--black);
 
@@ -111,6 +112,7 @@ input[type=text] {
     font-family: sans-serif;
     font-size: .95rem;
     padding: 2px 4px;
+    background-color: inherit;
     border: 1px solid #d0d0d0;
     border-radius: var(--border-radius);
 }
@@ -143,6 +145,17 @@ input[type=text]:disabled {
     background-color: var(--highlight-color);
 }
 
+.delete {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+}
+
+.delete:hover {
+    color: #c73131;
+    cursor: pointer;
+}
+
 .info {
     margin: 1rem 0 .5rem 0;
     padding: .5rem;
@@ -154,6 +167,22 @@ input[type=text]:disabled {
     border: 1px solid #e95151;
     background-color: #e9515140;
     color: #c73131;
+}
+
+.locked {
+    background-color: #fafafa;
+}
+
+input[type=text].locked {
+    pointer-events: none;
+}
+
+.units.locked {
+    color: inherit;
+}
+
+.units.locked:hover {
+    background-color: transparent;
 }
 
 .hidden {

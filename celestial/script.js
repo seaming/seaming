@@ -1,6 +1,3 @@
-var num_primaries = 0;
-var num_primaries_warning;
-var input;
 var ruler;
 
 const VOLUME_CONST = 4.0 / 3.0 * Math.PI;
@@ -64,6 +61,22 @@ function div_wrap(x) {
     return wrapper;
 }
 
+function delete_button(is_primary) {
+    var button = document.createElement('div');
+    button.classList.add('delete');
+    button.innerText = '×';
+
+    button.onclick = () => {
+        button.parentNode.remove();
+        if (is_primary === true) {
+            num_primaries -= 1;
+            check_primaries();
+        }
+    }
+
+    return button;
+}
+
 function make_row_label(label) {
     var el = document.createElement('div');
     el.classList.add('input-row-label');
@@ -82,8 +95,7 @@ function make_input_pair(name, units, prepend_name) {
         input.placeholder = name;
 
     input.oninput = () => {
-        var text = input.value.length > name.length ? input.value : name;
-        input.style.width = measure_text_length(text) + "px";
+        input.style.width = input.value.length > 0 ? measure_text_length(input.value) + "px" : "4em";
     }
     input.oninput();
 
@@ -97,14 +109,16 @@ function make_input_pair(name, units, prepend_name) {
 
     container.appendChild(input);
 
-    if (units !== undefined) {
+    if (units !== undefined && units.length > 0) {
         var unitbox = document.createElement('span');
         unitbox.classList.add('units');
         unitbox.innerText = units[0];
 
         unitbox.addEventListener('click', () => {
-            var currentIndex = units.findIndex(x => x == unitbox.innerText);
-            unitbox.innerText = units[(currentIndex + 1) % units.length];
+            if (!unitbox.classList.contains('locked')) {
+                var currentIndex = units.findIndex(x => x == unitbox.innerText);
+                unitbox.innerText = units[(currentIndex + 1) % units.length];
+            }
         });
 
         container.appendChild(unitbox);
@@ -113,7 +127,23 @@ function make_input_pair(name, units, prepend_name) {
     return container;
 }
 
+var num_primaries = 0;
+var num_primaries_warning;
 var primary_watchers = [];
+
+function check_primaries() {
+    if (num_primaries > 0) {
+        num_primaries_warning.classList.add('hidden');
+        (document.getElementById('secondaries')
+            .querySelectorAll('.body-entry, input, .units')
+            .forEach(x => x.classList.remove('locked')));
+    } else {
+        num_primaries_warning.classList.remove('hidden');
+        (document.getElementById('secondaries')
+            .querySelectorAll('.body-entry, input, .units')
+            .forEach(x => x.classList.add('locked')));
+    };
+}
 
 function add_primary(caller) {
     var el = document.createElement('div');
@@ -134,13 +164,13 @@ function add_primary(caller) {
     el.appendChild(physical_properties);
 
     num_primaries += 1;
-    if (num_primaries > 0) num_primaries_warning.classList.add('hidden');
-    else num_primaries_warning.classList.remove('hidden');
+    check_primaries();
+    el.appendChild(delete_button(true));
 
     caller.parentNode.insertBefore(el, caller);
 
     for (var [field, f] of primary_watchers) {
-        for (input of document.querySelectorAll('#primaries .body-entry input[name='+field+']')) {
+        for (var input of document.querySelectorAll('#primaries .body-entry input[name='+field+']')) {
             input.addEventListener('input', f);
             input.nextSibling.addEventListener('click', f);
         }
@@ -153,7 +183,7 @@ function primary_total_mass() {
         var unit = a.nextSibling.innerText;
         return unit_converter(unit, dimension(unit)[0])(parseFloat(a.value));
     })
-    return x.reduce((partial, v) => partial + v, 0);
+    return x.reduce((partial, v) => partial + v, 0) || 0;
 }
 
 function add_secondary(caller) {
@@ -238,6 +268,8 @@ function add_secondary(caller) {
     orbital_properties.appendChild(make_row_label('Orbital properties'));
     orbital_properties.append(fields);
     el.appendChild(orbital_properties);
+
+    el.appendChild(delete_button());
 
     caller.parentNode.insertBefore(el, caller);
 }
@@ -404,13 +436,13 @@ function linked_triple(a, b, c, f_a, f_b, f_c) {
 
     a.input.addEventListener('input', f);
     if (a.units !== undefined)
-    a.units.addEventListener('click', f);
+        a.units.addEventListener('click', f);
     b.input.addEventListener('input', f);
     if (b.units !== undefined)
-    b.units.addEventListener('click', f);
+        b.units.addEventListener('click', f);
     c.input.addEventListener('input', f);
     if (c.units !== undefined)
-    c.units.addEventListener('click', f);
+        c.units.addEventListener('click', f);
 }
 
 window.onload = () => {
