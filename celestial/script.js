@@ -13,6 +13,7 @@ const DENSITY = ['kg m⁻³', 'g cm⁻³'];
 const DURATION = ['s', 'hour', 'day', 'year'];
 const FREQUENCY = ['s⁻¹', 'hour⁻¹', 'day⁻¹', 'year⁻¹'];
 const ACCELERATION = ['m s⁻²', 'g'];
+const DIMENSIONLESS = [];
 
 const SYMBOL_TABLE = {
     'kg': 1.0,
@@ -46,6 +47,7 @@ function unit_converter(a,b) {
 }
 
 function dimension(unit) {
+    if (unit == 'dimensionless') return ['dimensionless'];
     return [
         MASS, LENGTH, DENSITY, DURATION, FREQUENCY, ACCELERATION
     ].find(x => x.includes(unit));
@@ -205,6 +207,7 @@ function add_secondary(caller) {
     var semimajor_axis = make_input_pair('Semimajor axis', LENGTH, true);
     var periapsis = make_input_pair('Periapsis', LENGTH, true);
     var apoapsis = make_input_pair('Apoapsis', LENGTH, true);
+    var eccentricity = make_input_pair('Eccentricity', DIMENSIONLESS, true);
     var period = make_input_pair('Orbital period', DURATION, true);
 
     var fields = document.createElement('div');
@@ -212,6 +215,7 @@ function add_secondary(caller) {
     fields.appendChild(semimajor_axis);
     fields.appendChild(periapsis);
     fields.appendChild(apoapsis);
+    fields.appendChild(eccentricity);
     fields.appendChild(period);
 
     linked_pair(semimajor_axis, period,
@@ -223,6 +227,11 @@ function add_secondary(caller) {
         (p,a) => (p+a) / 2.0,
         (sma,a) => 2.0 * sma - a,
         (sma,p) => 2.0 * sma - p);
+    
+    linked_triple(semimajor_axis, periapsis, eccentricity,
+        (p,e) => p / (1-e),
+        (a,e) => a * (1-e),
+        (a,p) => 1 - p/a);
 
     var orbital_properties = document.createElement('div');
     orbital_properties.classList.add('input-row');
@@ -334,11 +343,11 @@ function linked_triple(a, b, c, f_a, f_b, f_c) {
         var c_filled = c.input.value.length > 0 && c.input.dataset.locked_by != id;
         
         a.value = parseFloat(a.input.value);
-        a.unit = a.units.innerText;
+        a.unit = a.units !== undefined ? a.units.innerText : 'dimensionless';
         b.value = parseFloat(b.input.value);
-        b.unit = b.units.innerText;
+        b.unit = b.units !== undefined ? b.units.innerText : 'dimensionless';
         c.value = parseFloat(c.input.value);
-        c.unit = c.units.innerText;
+        c.unit = c.units !== undefined ? c.units.innerText : 'dimensionless';
 
         var e = new Event('input');
         e.source_id = id;
@@ -394,10 +403,13 @@ function linked_triple(a, b, c, f_a, f_b, f_c) {
     }
 
     a.input.addEventListener('input', f);
+    if (a.units !== undefined)
     a.units.addEventListener('click', f);
     b.input.addEventListener('input', f);
+    if (b.units !== undefined)
     b.units.addEventListener('click', f);
     c.input.addEventListener('input', f);
+    if (c.units !== undefined)
     c.units.addEventListener('click', f);
 }
 
