@@ -228,7 +228,7 @@ function total_primary_property(caller, property) {
     if (caller.parentNode.parentNode.tagName == 'BODY')
         x = document.getElementById('primaries').querySelectorAll('input[name='+property+']');
     else
-        x = caller.parentNode.parentNode.querySelectorAll('input[name='+property+']');
+        x = [caller.parentNode.parentNode.querySelector('input[name='+property+']')];
 
     x = Array.from(x).map(a => {
         if (a.type == 'number') {
@@ -236,25 +236,25 @@ function total_primary_property(caller, property) {
             return unit_converter(unit, dimension(unit)[0])(parseFloat(a.value));
         } else return a.value;
     });
-    return x.reduce((partial, v) => partial + v, 0) || 0;
+    return x.reduce((partial, v) => partial + v, 0);
 }
 
-function calc_primary_property(caller, f, ...properties) {
-    var x;
-    if (caller.parentNode.parentNode.tagName == 'BODY')
-        x = document.getElementById('primaries').querySelectorAll('input');
-    else
-        x = caller.parentNode.parentNode.querySelectorAll('input');
+// function calc_primary_property(caller, f, ...properties) {
+//     var x;
+//     if (caller.parentNode.parentNode.tagName == 'BODY')
+//         x = document.getElementById('primaries').querySelectorAll('input');
+//     else
+//         x = caller.parentNode.parentNode.querySelectorAll('input');
     
-    var values = properties.map(p => Array.from(x).filter(a => a.name == p).map(a => {
-        if (a.type == 'number') {
-            var unit = a.nextSibling.classList.contains('units') ? a.nextSibling.innerText : 'dimensionless';
-            return unit_converter(unit, dimension(unit)[0])(parseFloat(a.value));
-        } else return a.value;
-    }));
-    var rows = values[0].map((_,c) => values.map(p => p[c]));
-    return rows.map(x => f(...x));
-}
+//     var values = properties.map(p => Array.from(x).filter(a => a.name == p).map(a => {
+//         if (a.type == 'number') {
+//             var unit = a.nextSibling.classList.contains('units') ? a.nextSibling.innerText : 'dimensionless';
+//             return unit_converter(unit, dimension(unit)[0])(parseFloat(a.value));
+//         } else return a.value;
+//     }));
+//     var rows = values[0].map((_,c) => values.map(p => p[c]));
+//     return rows.map(x => f(...x));
+// }
 
 function add_secondary(caller) {
     if (num_primaries < 1) return;
@@ -334,7 +334,7 @@ function add_secondary(caller) {
     year_length.classList.add('description');
     live_text(year_length, (n,year,day) => {
         return (
-            "A sidereal year " + (n!==''?"on "+n:"") + " is " + round(year/day, 4) + " local sidereal days, or"
+            "A sidereal year " + (n!==''?"on "+n:"") + " is " + round(year/day, 4) + " local sidereal days, or "
             + round((year - day)/day, 4) + " local solar days long.");
     }, name, period, rotation_period);
     fields.appendChild(year_length);
@@ -531,12 +531,11 @@ function live_text(node, compute, ...sources) {
                 return unit_converter(unit, dimension(unit)[0])(parseFloat(x.value));
             } else return x.value;
         });
-        if (values.some(x => Number.isNaN(x) || x == undefined))
-            node.classList.add('hidden');
-        else {
+        if (values.every(x => x != undefined && isFinite(x))) {
             node.classList.remove('hidden');
             node.innerText = compute(...values);
-        }
+        } else
+            node.classList.add('hidden');
     }
     for (var source of sources) {
         source.addEventListener('input', f);
@@ -574,19 +573,25 @@ function linked_pair(a, b, f_a, f_b, params) {
         e.source_id = id;
 
         if (a.input.value.length > 0 && a.input.dataset.locked_by != id) {
-            b.input.disabled = true;
-            b.input.dataset.locked_by = id;
-            b.input.value = unit_converter(dimension(b.unit)[0], b.unit)(f_b(
+            var value = unit_converter(dimension(b.unit)[0], b.unit)(f_b(
                 unit_converter(a.unit, dimension(a.unit)[0])(a.value)
             ));
-            b.input.dispatchEvent(e);
+            if (value != undefined && isFinite(value)) {
+                b.input.value = value;
+                b.input.disabled = true;
+                b.input.dataset.locked_by = id;
+                b.input.dispatchEvent(e);
+            }
         } else if (b.input.value.length > 0 && b.input.dataset.locked_by != id) {
-            a.input.disabled = true;
-            a.input.dataset.locked_by = id;
-            a.input.value = unit_converter(dimension(a.unit)[0], a.unit)(f_a(
+            var value = unit_converter(dimension(a.unit)[0], a.unit)(f_a(
                 unit_converter(b.unit, dimension(b.unit)[0])(b.value),
             ));
-            a.input.dispatchEvent(e);
+            if (value != undefined && isFinite(value)) {
+                a.input.disabled = true;
+                a.input.dataset.locked_by = id;
+                a.input.value = value;
+                a.input.dispatchEvent(e);
+            }
         } else {
             if (a.input.dataset.locked_by == id) {
                 a.input.disabled = false;
@@ -659,29 +664,38 @@ function linked_triple(a, b, c, f_a, f_b, f_c, params) {
         e.source_id = id;
 
         if (a_filled && b_filled) {
-            c.input.disabled = true;
-            c.input.dataset.locked_by = id;
-            c.input.value = unit_converter(dimension(c.unit)[0], c.unit)(f_c(
+            var value = unit_converter(dimension(c.unit)[0], c.unit)(f_c(
                 unit_converter(a.unit, dimension(a.unit)[0])(a.value),
                 unit_converter(b.unit, dimension(b.unit)[0])(b.value)
             ));
-            c.input.dispatchEvent(e);
+            if (value != undefined && isFinite(value)) {
+                c.input.value = value;
+                c.input.disabled = true;
+                c.input.dataset.locked_by = id;
+                c.input.dispatchEvent(e);
+            }
         } else if (b_filled && c_filled) {
-            a.input.disabled = true;
-            a.input.dataset.locked_by = id;
-            a.input.value = unit_converter(dimension(a.unit)[0], a.unit)(f_a(
+            var value = unit_converter(dimension(a.unit)[0], a.unit)(f_a(
                 unit_converter(b.unit, dimension(b.unit)[0])(b.value),
                 unit_converter(c.unit, dimension(c.unit)[0])(c.value)
             ));
-            a.input.dispatchEvent(e);
+            if (value != undefined && isFinite(value)) {
+                a.input.value = value;
+                a.input.disabled = true;
+                a.input.dataset.locked_by = id;
+                a.input.dispatchEvent(e);
+            }
         } else if (a_filled && c_filled) {
-            b.input.disabled = true;
-            b.input.dataset.locked_by = id;
-            b.input.value = unit_converter(dimension(b.unit)[0], b.unit)(f_b(
+            var value = unit_converter(dimension(b.unit)[0], b.unit)(f_b(
                 unit_converter(a.unit, dimension(a.unit)[0])(a.value),
                 unit_converter(c.unit, dimension(c.unit)[0])(c.value)
             ));
-            b.input.dispatchEvent(e);
+            if (value != undefined && isFinite(value)) {
+                b.input.value = value;
+                b.input.disabled = true;
+                b.input.dataset.locked_by = id;
+                b.input.dispatchEvent(e);
+            }
         } else {
             if (a.input.dataset.locked_by == id) {
                 a.input.disabled = false;
@@ -723,7 +737,6 @@ function linked_triple(a, b, c, f_a, f_b, f_c, params) {
             params['watch'].forEach(input => {
                 input.addEventListener('input', f);
                 var units = input.nextSibling;
-                console.log(input, units);
                 if (units.classList.contains('units'))
                     units.addEventListener('click', f);
             });
