@@ -135,7 +135,7 @@ function make_input_pair(name, units, prepend_name) {
     container.appendChild(input);
 
     if (units !== undefined && units.length > 0) {
-        var unitbox = document.createElement('span');
+        var unitbox = document.createElement('button');
         unitbox.classList.add('units');
         unitbox.innerText = units[0];
 

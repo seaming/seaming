@@ -213,6 +213,11 @@ input.locked {
     pointer-events: none;
 }
 
+.units {
+    border: none;
+    background-color: inherit;
+}
+
 .units.locked {
     color: inherit;
 }
