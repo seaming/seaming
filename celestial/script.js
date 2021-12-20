@@ -10,6 +10,7 @@ const DENSITY = ['kg/m³', 'g/cm³'];
 const DURATION = ['s', 'hour', 'day', 'year'];
 const FREQUENCY = ['Hz', 'per hour', 'per day', 'per year'];
 const ACCELERATION = ['m/s²', 'g'];
+const ANGLE = ['degrees', 'radians'];
 const DIMENSIONLESS = [];
 
 const SYMBOL_TABLE = {
@@ -24,7 +25,7 @@ const SYMBOL_TABLE = {
     'g/cm³': 1000.0,
     'kg/m³': 1.0,
     's': 1.0,
-    'hour': 60.0, // s
+    'hour': 3600.0, // s
     'day': 86400.0, // s
     'year': 31557600.0, // s
     'Hz': 1.0,
@@ -33,6 +34,8 @@ const SYMBOL_TABLE = {
     'per year': 1.0 / 31557600.0, // Hz
     'm/s²': 1.0,
     'g': 9.80665, // m s⁻²
+    'degrees': 1.0,
+    'radians': Math.PI / 180.0, // degrees
 }
 
 function unit_converter(a,b) {
@@ -89,7 +92,7 @@ function make_input_pair(name, units, prepend_name) {
     container.classList.add('input-pair');
 
     var input = document.createElement('input');
-    input.type = 'text';
+    input.type = prepend_name ? 'number' : 'text';
     input.name = name.toLowerCase();
     if (prepend_name !== true)
         input.placeholder = name;
@@ -197,7 +200,8 @@ function add_secondary(caller) {
     var el = document.createElement('div');
     el.classList.add('body-entry');
 
-    el.appendChild(make_input_pair('Name'));
+    var name = make_input_pair('Name');
+    el.appendChild(name);
 
     var mass = make_input_pair('Mass', MASS, true);
     var radius = make_input_pair('Radius', LENGTH, true);
@@ -227,18 +231,20 @@ function add_secondary(caller) {
     physical_properties.append(fields);
     el.appendChild(physical_properties);
 
-    var rotation_rate = make_input_pair('Rotation rate', FREQUENCY, true);
+    var rotation_period = make_input_pair('Rotation period', DURATION, true);
     var flattening_coefficient = make_input_pair('Flattening coefficient', DIMENSIONLESS, true);
+    var axial_tilt = make_input_pair('Axial tilt', ANGLE, true);
 
     var fields = document.createElement('div');
     fields.classList.add('input-fields');
-    fields.appendChild(rotation_rate);
+    fields.appendChild(rotation_period);
     fields.appendChild(flattening_coefficient);
+    fields.appendChild(axial_tilt);
 
-    linked_triple(density, rotation_rate, flattening_coefficient,
-        (n,f) => 15*Math.PI/4 * n*n/(GRAVITATIONAL_CONSTANT * f),
+    linked_triple(density, rotation_period, flattening_coefficient,
+        (n,f) => 15*Math.PI/4 * 1/(GRAVITATIONAL_CONSTANT * n*n * f),
         (d,f) => Math.sqrt(4 * f / (15 * Math.PI) * GRAVITATIONAL_CONSTANT * d),
-        (d,n) => 15*Math.PI/4 * n*n/(GRAVITATIONAL_CONSTANT * d));
+        (d,n) => 15*Math.PI/4 * 1/(GRAVITATIONAL_CONSTANT * n*n * d));
 
     var rotational_properties = document.createElement('div');
     rotational_properties.classList.add('input-row');
@@ -247,10 +253,11 @@ function add_secondary(caller) {
     el.appendChild(rotational_properties);
 
     var semimajor_axis = make_input_pair('Semi-major axis', LENGTH, true);
-    var periapsis = make_input_pair('Periapsis', LENGTH, true);
-    var apoapsis = make_input_pair('Apoapsis', LENGTH, true);
+    var periapsis = make_input_pair('Periastron', LENGTH, true);
+    var apoapsis = make_input_pair('Apoastron', LENGTH, true);
     var eccentricity = make_input_pair('Eccentricity', DIMENSIONLESS, true);
     var period = make_input_pair('Orbital period', DURATION, true);
+    var inclination = make_input_pair('Orbital inclination', ANGLE, true);
 
     var fields = document.createElement('div');
     fields.classList.add('input-fields');
@@ -259,6 +266,27 @@ function add_secondary(caller) {
     fields.appendChild(apoapsis);
     fields.appendChild(eccentricity);
     fields.appendChild(period);
+    fields.appendChild(inclination);
+
+    var year_length = document.createElement('div');
+    year_length.classList.add('description');
+    live_text(year_length, (n,year,day) => {
+        return (
+            "A sidereal year " + (n!==''?"on "+n:"") + " is " + (year/day) + " local sidereal days long ("
+            + (year - day)/day + " local solar days).");
+    }, name, period, rotation_period);
+    fields.appendChild(year_length);
+
+    var day_length = document.createElement('div');
+    day_length.classList.add('description');
+    live_text(day_length, (n,year,day) => {
+        var u = unit_converter('s', 'hour');
+        var solar_day = year * day / (year - day);
+        return (
+            "A sidereal day " + (n!==''?"on "+n:"") + " is " + (u(day)) + " hours long. "
+            + "A solar day is " + (u(solar_day)) + " hours long.");
+    }, name, period, rotation_period);
+    fields.appendChild(day_length);
 
     var f = linked_pair(semimajor_axis, period,
         t => Math.pow(t*t/(4*PI_SQ) * primary_total_mass() * GRAVITATIONAL_CONSTANT, 1/3),
@@ -333,6 +361,7 @@ function add_tertiary(caller) {
     var apoapsis = make_input_pair('Apoapsis', LENGTH, true);
     var eccentricity = make_input_pair('Eccentricity', DIMENSIONLESS, true);
     var period = make_input_pair('Orbital period', DURATION, true);
+    var inclination = make_input_pair('Orbital inclination', ANGLE, true);
 
     var fields = document.createElement('div');
     fields.classList.add('input-fields');
@@ -341,6 +370,7 @@ function add_tertiary(caller) {
     fields.appendChild(apoapsis);
     fields.appendChild(eccentricity);
     fields.appendChild(period);
+    fields.appendChild(inclination);
 
     function primary_total_mass() {
         var primary = caller.parentNode.parentNode;
@@ -373,6 +403,31 @@ function add_tertiary(caller) {
     el.appendChild(delete_button());
 
     caller.parentNode.insertBefore(el, caller);
+}
+
+function live_text(node, compute, ...sources) {
+    node.classList.add('hidden');
+    sources = sources.map(x => x.getElementsByTagName('input')[0]);
+    function f() {
+        var values = sources.map(x => {
+            if (x.type === 'number') {
+                var unit = x.nextSibling.classList.contains('units') ? x.nextSibling.innerText : 'dimensionless';
+                return unit_converter(unit, dimension(unit)[0])(parseFloat(x.value));
+            } else return x.value;
+        });
+        if (values.some(x => Number.isNaN(x) || x == undefined))
+            node.classList.add('hidden');
+        else {
+            node.classList.remove('hidden');
+            node.innerText = compute(...values);
+        }
+    }
+    for (var source of sources) {
+        source.addEventListener('input', f);
+        var unit = source.nextSibling;
+        if (unit != null && unit.classList.contains('units'))
+            unit.addEventListener('click', f);
+    }
 }
 
 var sync_lock = 0;
