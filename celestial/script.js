@@ -3,11 +3,14 @@ var ruler;
 const VOLUME_CONST = 4.0 / 3.0 * Math.PI;
 const PI_SQ = Math.PI * Math.PI;
 const GRAVITATIONAL_CONSTANT = 6.67430e-11;
+const STEFAN_BOLTZMANN_CONSTANT = 5.670374419e-8;
 
 const MASS = ['kg', 'M🜨', 'M☉'];
 const LENGTH = ['m', 'km', 'R🜨', 'R☉', 'AU'];
-const DENSITY = ['kg/m³', 'g/cm³'];
 const DURATION = ['s', 'hour', 'day', 'year'];
+const TEMPERATURE = ['K', '°C', '°F'];
+const LUMINOSITY = ['W', 'L⊙'];
+const DENSITY = ['kg/m³', 'g/cm³'];
 const FREQUENCY = ['Hz', 'per hour', 'per day', 'per year'];
 const ACCELERATION = ['m/s²', 'g'];
 const ANGLE = ['degrees', 'radians'];
@@ -36,6 +39,11 @@ const SYMBOL_TABLE = {
     'g': 9.80665, // m s⁻²
     'degrees': 1.0,
     'radians': Math.PI / 180.0, // degrees
+    'K': 1.0, // K
+    '°C': [1.0, 273.15], // K
+    '°F': [5/9, 459.67], // K
+    'W': 1.0,
+    'L⊙': 3.828e26, // W
 }
 
 function round(x,n) {
@@ -47,13 +55,18 @@ function unit_converter(a,b) {
         return x => x;
     if (dimension(a) !== dimension(b))
         console.error('Cannot convert a ' + a + ' into a ' + b + '.');
-    return x => x * SYMBOL_TABLE[a] / SYMBOL_TABLE[b];
+    var a = SYMBOL_TABLE[a];
+    var fa = (typeof a == 'object') ? (x => x*a[0]+a[1]) : (x => x*a);
+    var b = SYMBOL_TABLE[b];
+    var fb = (typeof b == 'object') ? (x => x/b[0]-b[1]) : (x => x/b);
+    return x => fb(fa(x));
 }
 
 function dimension(unit) {
     if (unit == 'dimensionless') return ['dimensionless'];
     return [
-        MASS, LENGTH, DENSITY, DURATION, FREQUENCY, ACCELERATION
+        MASS, LENGTH, DURATION, TEMPERATURE, LUMINOSITY,
+        DENSITY, FREQUENCY, ACCELERATION, ANGLE, DIMENSIONLESS
     ].find(x => x.includes(unit));
 }
 
@@ -97,7 +110,7 @@ function make_input_pair(name, units, prepend_name) {
 
     var input = document.createElement('input');
     input.type = prepend_name ? 'number' : 'text';
-    input.name = name.toLowerCase();
+    input.name = name.toLowerCase().split('(')[0].trim().replace(' ','-');
     if (prepend_name !== true)
         input.placeholder = name;
 
@@ -164,10 +177,31 @@ function add_primary(caller) {
     el.appendChild(make_input_pair('Name'));
 
     var mass = make_input_pair('Mass', MASS, true);
+    var radius = make_input_pair('Radius', LENGTH, true);
+    var temperature = make_input_pair('Surface temperature', TEMPERATURE, true);
+    var luminosity = make_input_pair('Luminosity', LUMINOSITY, true);
     
     var fields = document.createElement('div');
     fields.classList.add('input-fields');
     fields.appendChild(mass);
+    fields.appendChild(radius);
+    fields.appendChild(temperature);
+    fields.appendChild(luminosity);
+
+    linked_pair(mass, luminosity,
+        L => {
+            var Lsun = unit_converter('W', 'L⊙')(L);
+            return unit_converter('M☉', 'kg')(Math.pow(Lsun, 1/3.5));
+        },
+        M => {
+            var Msun = unit_converter('kg', 'M☉')(M);
+            return unit_converter('L⊙', 'W')(Math.pow(Msun, 3.5));
+        });
+
+    linked_triple(radius, temperature, luminosity,
+        (T,L) => Math.sqrt(L / (4 * Math.PI * STEFAN_BOLTZMANN_CONSTANT * T*T*T*T)),
+        (R,L) => Math.pow(L / (4 * Math.PI * STEFAN_BOLTZMANN_CONSTANT * R*R), 1/4),
+        (R,T) => 4 * Math.PI * R*R * STEFAN_BOLTZMANN_CONSTANT * T*T*T*T);
     
     var physical_properties = document.createElement('div');
     physical_properties.classList.add('input-row');
@@ -189,13 +223,37 @@ function add_primary(caller) {
     }
 }
 
-function primary_total_mass() {
-    var x = document.getElementById('primaries').querySelectorAll('input[name=mass]');
+function total_primary_property(caller, property) {
+    var x;
+    if (caller.parentNode.parentNode.tagName == 'BODY')
+        x = document.getElementById('primaries').querySelectorAll('input[name='+property+']');
+    else
+        x = caller.parentNode.parentNode.querySelectorAll('input[name='+property+']');
+
     x = Array.from(x).map(a => {
-        var unit = a.nextSibling.innerText;
-        return unit_converter(unit, dimension(unit)[0])(parseFloat(a.value));
-    })
+        if (a.type == 'number') {
+            var unit = a.nextSibling.classList.contains('units') ? a.nextSibling.innerText : 'dimensionless';
+            return unit_converter(unit, dimension(unit)[0])(parseFloat(a.value));
+        } else return a.value;
+    });
     return x.reduce((partial, v) => partial + v, 0) || 0;
+}
+
+function calc_primary_property(caller, f, ...properties) {
+    var x;
+    if (caller.parentNode.parentNode.tagName == 'BODY')
+        x = document.getElementById('primaries').querySelectorAll('input');
+    else
+        x = caller.parentNode.parentNode.querySelectorAll('input');
+    
+    var values = properties.map(p => Array.from(x).filter(a => a.name == p).map(a => {
+        if (a.type == 'number') {
+            var unit = a.nextSibling.classList.contains('units') ? a.nextSibling.innerText : 'dimensionless';
+            return unit_converter(unit, dimension(unit)[0])(parseFloat(a.value));
+        } else return a.value;
+    }));
+    var rows = values[0].map((_,c) => values.map(p => p[c]));
+    return rows.map(x => f(...x));
 }
 
 function add_secondary(caller) {
@@ -276,8 +334,8 @@ function add_secondary(caller) {
     year_length.classList.add('description');
     live_text(year_length, (n,year,day) => {
         return (
-            "A sidereal year " + (n!==''?"on "+n:"") + " is " + round(year/day, 4) + " local sidereal days long ("
-            + round((year - day)/day, 4) + " local solar days).");
+            "A sidereal year " + (n!==''?"on "+n:"") + " is " + round(year/day, 4) + " local sidereal days, or"
+            + round((year - day)/day, 4) + " local solar days long.");
     }, name, period, rotation_period);
     fields.appendChild(year_length);
 
@@ -293,8 +351,8 @@ function add_secondary(caller) {
     fields.appendChild(day_length);
 
     var f = linked_pair(semimajor_axis, period,
-        t => Math.pow(t*t/(4*PI_SQ) * primary_total_mass() * GRAVITATIONAL_CONSTANT, 1/3),
-        a => 2 * Math.PI * Math.sqrt(a*a*a/(GRAVITATIONAL_CONSTANT * primary_total_mass())),
+        t => Math.pow(t*t/(4*PI_SQ) * total_primary_property(caller, 'mass') * GRAVITATIONAL_CONSTANT, 1/3),
+        a => 2 * Math.PI * Math.sqrt(a*a*a/(GRAVITATIONAL_CONSTANT * total_primary_property(caller, 'mass'))),
         { 'watch': document.getElementById('primaries').querySelectorAll('input[name=mass]') });
 
     primary_watchers.push(['mass', f]);
@@ -314,6 +372,32 @@ function add_secondary(caller) {
     orbital_properties.appendChild(make_row_label('Orbital properties'));
     orbital_properties.append(fields);
     el.appendChild(orbital_properties);
+
+    var albedo = make_input_pair('Albedo', DIMENSIONLESS, true);
+    var equilibrium_temperature = make_input_pair('Equilibrium temperature', TEMPERATURE, true);
+
+    var fields = document.createElement('div');
+    fields.classList.add('input-fields');
+    fields.appendChild(albedo);
+    fields.appendChild(equilibrium_temperature);
+
+    var f = linked_triple(semimajor_axis, albedo, equilibrium_temperature,
+        (a,T) => Math.sqrt( total_primary_property(caller, 'luminosity') * (1-a)
+            / (16 * Math.PI * STEFAN_BOLTZMANN_CONSTANT * Math.pow(T,4)) ),
+        (d,T) => 1 - 16 * Math.PI * STEFAN_BOLTZMANN_CONSTANT * d*d * Math.pow(T,4)
+            / total_primary_property(caller, 'luminosity'),
+        (d,a) => Math.pow( total_primary_property(caller, 'luminosity') * (1-a)
+            / (16 * Math.PI * STEFAN_BOLTZMANN_CONSTANT * d*d), 1/4),
+
+        { 'watch': document.getElementById('primaries').querySelectorAll('input[name=luminosity]') });
+
+    primary_watchers.push(['luminosity', f]);
+
+    var surface_properties = document.createElement('div');
+    surface_properties.classList.add('input-row');
+    surface_properties.appendChild(make_row_label('Surface properties'));
+    surface_properties.append(fields);
+    el.appendChild(surface_properties);
 
     {
         var x = document.createElement('div');
@@ -380,10 +464,10 @@ function add_tertiary(caller) {
     var primary_name = caller.parentNode.parentNode.querySelector('input[name=name]');
     primary_name = primary_name.parentNode;
 
-    var primary_year = caller.parentNode.parentNode.querySelector('input[name="orbital period"]');
+    var primary_year = caller.parentNode.parentNode.querySelector('input[name=orbital-period]');
     primary_year = primary_year.parentNode;
 
-    var primary_day = caller.parentNode.parentNode.querySelector('input[name="rotation period"]');
+    var primary_day = caller.parentNode.parentNode.querySelector('input[name=rotation-period]');
     primary_day = primary_day.parentNode;
 
     var sidereal_month_length = document.createElement('div');
@@ -392,8 +476,8 @@ function add_tertiary(caller) {
         var solar_day = p_year * p_day / (p_year - p_day);
         return (
             "A sidereal month " + (n!==''?"of "+n:"") + " is " + round(T/p_day,4) + " local "
-            + (p_n!==''?p_n+' ':'') + " sidereal days long, or " + round(T/solar_day,4) + " local "
-            + (p_n!==''?p_n+' ':'') + " solar days. There are " + round(p_year/T,4)
+            + (p_n!==''?p_n+' ':'') + " sidereal days, or " + round(T/solar_day,4) + " local "
+            + (p_n!==''?p_n+' ':'') + " solar days long. There are " + round(p_year/T,4)
             + " sidereal months in a sidereal year." );
     }, name, primary_name, primary_year, primary_day, period);
     fields.appendChild(sidereal_month_length);
@@ -411,16 +495,9 @@ function add_tertiary(caller) {
     }, name, primary_name, primary_year, primary_day, period);
     fields.appendChild(lunar_month_length);
 
-    function primary_total_mass() {
-        var primary = caller.parentNode.parentNode;
-        var input = primary.querySelector('input[name=mass]');
-        var unit = input.nextSibling.innerText;
-        return unit_converter(unit, dimension(unit)[0])(parseFloat(input.value) || 0);
-    }
-
     linked_pair(semimajor_axis, period,
-        t => Math.pow(t*t/(4*PI_SQ) * primary_total_mass() * GRAVITATIONAL_CONSTANT, 1/3),
-        a => 2 * Math.PI * Math.sqrt(a*a*a/(GRAVITATIONAL_CONSTANT * primary_total_mass())),
+        t => Math.pow(t*t/(4*PI_SQ) * total_primary_property(caller, 'mass') * GRAVITATIONAL_CONSTANT, 1/3),
+        a => 2 * Math.PI * Math.sqrt(a*a*a/(GRAVITATIONAL_CONSTANT * total_primary_property(caller, 'mass'))),
         { 'watch': caller.parentNode.parentNode.querySelectorAll('input[name=mass]') });
 
     linked_triple(semimajor_axis, periapsis, apoapsis,
@@ -489,9 +566,9 @@ function linked_pair(a, b, f_a, f_b, params) {
         if (event.source_id == id) return;
 
         a.value = parseFloat(a.input.value);
-        a.unit = a.units.innerText;
+        a.unit = a.units !== undefined ? a.units.innerText : 'dimensionless';
         b.value = parseFloat(b.input.value);
-        b.unit = b.units.innerText;
+        b.unit = b.units !== undefined ? b.units.innerText : 'dimensionless';
 
         var e = new Event('input');
         e.source_id = id;
@@ -545,7 +622,7 @@ function linked_pair(a, b, f_a, f_b, params) {
     return f;
 }
 
-function linked_triple(a, b, c, f_a, f_b, f_c) {
+function linked_triple(a, b, c, f_a, f_b, f_c, params) {
     var id = sync_lock;
     sync_lock += 1;
 
@@ -640,6 +717,20 @@ function linked_triple(a, b, c, f_a, f_b, f_c) {
     c.input.addEventListener('input', f);
     if (c.units !== undefined)
         c.units.addEventListener('click', f);
+    
+    if (params !== undefined) {
+        if ('watch' in params) {
+            params['watch'].forEach(input => {
+                input.addEventListener('input', f);
+                var units = input.nextSibling;
+                console.log(input, units);
+                if (units.classList.contains('units'))
+                    units.addEventListener('click', f);
+            });
+        }
+    }
+    
+    return f;
 }
 
 window.onload = () => {
