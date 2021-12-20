@@ -38,6 +38,10 @@ const SYMBOL_TABLE = {
     'radians': Math.PI / 180.0, // degrees
 }
 
+function round(x,n) {
+    return Math.round((x + Number.EPSILON) * Math.pow(10,n)) / Math.pow(10,n);
+}
+
 function unit_converter(a,b) {
     if (a === b)
         return x => x;
@@ -272,8 +276,8 @@ function add_secondary(caller) {
     year_length.classList.add('description');
     live_text(year_length, (n,year,day) => {
         return (
-            "A sidereal year " + (n!==''?"on "+n:"") + " is " + (year/day) + " local sidereal days long ("
-            + (year - day)/day + " local solar days).");
+            "A sidereal year " + (n!==''?"on "+n:"") + " is " + round(year/day, 4) + " local sidereal days long ("
+            + round((year - day)/day, 4) + " local solar days).");
     }, name, period, rotation_period);
     fields.appendChild(year_length);
 
@@ -283,8 +287,8 @@ function add_secondary(caller) {
         var u = unit_converter('s', 'hour');
         var solar_day = year * day / (year - day);
         return (
-            "A sidereal day " + (n!==''?"on "+n:"") + " is " + (u(day)) + " hours long. "
-            + "A solar day is " + (u(solar_day)) + " hours long.");
+            "A sidereal day " + (n!==''?"on "+n:"") + " is " + round(u(day), 4) + " hours long. "
+            + "A solar day is " + round(u(solar_day), 4) + " hours long.");
     }, name, period, rotation_period);
     fields.appendChild(day_length);
 
@@ -326,7 +330,8 @@ function add_tertiary(caller) {
     var el = document.createElement('div');
     el.classList.add('body-entry');
 
-    el.appendChild(make_input_pair('Name'));
+    var name = make_input_pair('Name');
+    el.appendChild(name);
 
     var mass = make_input_pair('Mass', MASS, true);
     var radius = make_input_pair('Radius', LENGTH, true);
@@ -371,6 +376,40 @@ function add_tertiary(caller) {
     fields.appendChild(eccentricity);
     fields.appendChild(period);
     fields.appendChild(inclination);
+
+    var primary_name = caller.parentNode.parentNode.querySelector('input[name=name]');
+    primary_name = primary_name.parentNode;
+
+    var primary_year = caller.parentNode.parentNode.querySelector('input[name="orbital period"]');
+    primary_year = primary_year.parentNode;
+
+    var primary_day = caller.parentNode.parentNode.querySelector('input[name="rotation period"]');
+    primary_day = primary_day.parentNode;
+
+    var sidereal_month_length = document.createElement('div');
+    sidereal_month_length.classList.add('description');
+    live_text(sidereal_month_length, (n,p_n,p_year,p_day,T) => {
+        var solar_day = p_year * p_day / (p_year - p_day);
+        return (
+            "A sidereal month " + (n!==''?"of "+n:"") + " is " + round(T/p_day,4) + " local "
+            + (p_n!==''?p_n+' ':'') + " sidereal days long, or " + round(T/solar_day,4) + " local "
+            + (p_n!==''?p_n+' ':'') + " solar days. There are " + round(p_year/T,4)
+            + " sidereal months in a sidereal year." );
+    }, name, primary_name, primary_year, primary_day, period);
+    fields.appendChild(sidereal_month_length);
+
+    var lunar_month_length = document.createElement('div');
+    lunar_month_length.classList.add('description');
+    live_text(lunar_month_length, (n,p_n,p_year,p_day,T) => {
+        var solar_day = p_year * p_day / (p_year - p_day);
+        var lunar_month = p_year * T / (p_year - T);
+        return (
+            "A lunation (lunar month) " + (n!==''?"of "+n:"") + " is " + round(lunar_month/p_day, 4) + " local "
+            + (p_n!==''?p_n+' ':'') + " sidereal days long, or " + round(lunar_month/solar_day, 4) + " local "
+            + (p_n!==''?p_n+' ':'') + " solar days. There are " + round(p_year/lunar_month,4)
+            + " lunations in a sidereal year." );
+    }, name, primary_name, primary_year, primary_day, period);
+    fields.appendChild(lunar_month_length);
 
     function primary_total_mass() {
         var primary = caller.parentNode.parentNode;
