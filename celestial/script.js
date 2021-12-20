@@ -70,6 +70,13 @@ function dimension(unit) {
     ].find(x => x.includes(unit));
 }
 
+function get_units(input) {
+    var unit = input.nextSibling;
+    if (unit != null && unit.classList.contains('units'))
+        return unit.innerText;
+    return 'dimensionless';
+}
+
 function measure_text_length(text) {
     ruler.innerText = text;
     return ruler.offsetWidth;
@@ -104,27 +111,27 @@ function make_row_label(label) {
     return el;
 }
 
-function make_input_pair(name, units, prepend_name) {
+function make_input_pair(name, params) {
     var container = document.createElement('div');
     container.classList.add('input-pair');
 
     var input = document.createElement('input');
-    input.type = prepend_name ? 'number' : 'text';
+    input.type = params['type'] || 'number';
     input.name = name.toLowerCase().split('(')[0].trim().replace(' ','-');
-    if (prepend_name !== true)
+    if (params['prepend-name'] === false)
         input.placeholder = name;
 
     input.oninput = () => {
         if (input.value.length > 0)
             input.style.width = measure_text_length(input.value) + "px";
-        else if (!prepend_name)
+        else if (params['prepend-name'] === false)
             input.style.width = measure_text_length(name) + "px";
         else
             input.style.width = "3em";
     }
     input.oninput();
 
-    if (prepend_name === true)
+    if (params['prepend-name'] !== false)
         container.appendChild((() => {
             var el = document.createElement('span');
             el.classList.add('input-pair-label')
@@ -134,6 +141,7 @@ function make_input_pair(name, units, prepend_name) {
 
     container.appendChild(input);
 
+    var units = params['units'];
     if (units !== undefined && units.length > 0) {
         var unitbox = document.createElement('button');
         unitbox.classList.add('units');
@@ -174,12 +182,14 @@ function add_primary(caller) {
     var el = document.createElement('div');
     el.classList.add('body-entry');
 
-    el.appendChild(make_input_pair('Name'));
+    el.appendChild(make_input_pair('Name', {'prepend-name': false, 'type': 'text'}));
 
-    var mass = make_input_pair('Mass', MASS, true);
-    var radius = make_input_pair('Radius', LENGTH, true);
-    var temperature = make_input_pair('Surface temperature', TEMPERATURE, true);
-    var luminosity = make_input_pair('Luminosity', LUMINOSITY, true);
+    var mass = make_input_pair('Mass', { units: MASS });
+    var radius = make_input_pair('Radius', { units: LENGTH });
+    var temperature = make_input_pair('Surface temperature', { units: TEMPERATURE });
+    var luminosity = make_input_pair('Luminosity', { units: LUMINOSITY });
+    var stellar_class = make_input_pair('Stellar class', { 'type': 'text' });
+    stellar_class.classList.add('stellar-class');
     
     var fields = document.createElement('div');
     fields.classList.add('input-fields');
@@ -187,6 +197,7 @@ function add_primary(caller) {
     fields.appendChild(radius);
     fields.appendChild(temperature);
     fields.appendChild(luminosity);
+    fields.appendChild(stellar_class);
 
     linked_pair(mass, luminosity,
         L => {
@@ -203,6 +214,19 @@ function add_primary(caller) {
         (R,L) => Math.pow(L / (4 * Math.PI * STEFAN_BOLTZMANN_CONSTANT * R*R), 1/4),
         (R,T) => 4 * Math.PI * R*R * STEFAN_BOLTZMANN_CONSTANT * T*T*T*T);
     
+    computed_value(stellar_class, (L,T) => {
+        var Lsun = unit_converter('W', 'L⊙')(L);
+        return stellar_classification(T, Lsun);
+    }, luminosity, temperature);
+
+    var stellar_class_input = stellar_class.getElementsByTagName('input')[0];
+    stellar_class_input.addEventListener('input', () => {
+        if (stellar_class_input.value.length > 0)
+            stellar_class_input.dataset.value = stellar_class_input.value;
+        else
+            delete stellar_class_input.dataset.value;
+    });
+    
     var physical_properties = document.createElement('div');
     physical_properties.classList.add('input-row');
     physical_properties.appendChild(make_row_label('Physical properties'));
@@ -218,7 +242,9 @@ function add_primary(caller) {
     for (var [field, f] of primary_watchers) {
         for (var input of document.querySelectorAll('#primaries .body-entry input[name='+field+']')) {
             input.addEventListener('input', f);
-            input.nextSibling.addEventListener('click', f);
+            var unit = input.nextSibling;
+            if (unit != null && unit.classList.contains('units'))
+                unit.addEventListener('click', f);
         }
     }
 }
@@ -232,7 +258,7 @@ function total_primary_property(caller, property) {
 
     x = Array.from(x).map(a => {
         if (a.type == 'number') {
-            var unit = a.nextSibling.classList.contains('units') ? a.nextSibling.innerText : 'dimensionless';
+            var unit = get_units(a);
             return unit_converter(unit, dimension(unit)[0])(parseFloat(a.value));
         } else return a.value;
     });
@@ -248,7 +274,7 @@ function total_primary_property(caller, property) {
     
 //     var values = properties.map(p => Array.from(x).filter(a => a.name == p).map(a => {
 //         if (a.type == 'number') {
-//             var unit = a.nextSibling.classList.contains('units') ? a.nextSibling.innerText : 'dimensionless';
+//             var unit = get_units(a);
 //             return unit_converter(unit, dimension(unit)[0])(parseFloat(a.value));
 //         } else return a.value;
 //     }));
@@ -262,13 +288,13 @@ function add_secondary(caller) {
     var el = document.createElement('div');
     el.classList.add('body-entry');
 
-    var name = make_input_pair('Name');
+    var name = make_input_pair('Name', {'prepend-name': false, 'type': 'text'});
     el.appendChild(name);
 
-    var mass = make_input_pair('Mass', MASS, true);
-    var radius = make_input_pair('Radius', LENGTH, true);
-    var density = make_input_pair('Density', DENSITY, true);
-    var surface_gravity = make_input_pair('Surface gravity', ACCELERATION, true);
+    var mass = make_input_pair('Mass', { units: MASS });
+    var radius = make_input_pair('Radius', { units: LENGTH });
+    var density = make_input_pair('Density', { units: DENSITY });
+    var surface_gravity = make_input_pair('Surface gravity', { units: ACCELERATION });
 
     var fields = document.createElement('div');
     fields.classList.add('input-fields');
@@ -293,9 +319,9 @@ function add_secondary(caller) {
     physical_properties.append(fields);
     el.appendChild(physical_properties);
 
-    var rotation_period = make_input_pair('Rotation period', DURATION, true);
-    var flattening_coefficient = make_input_pair('Flattening coefficient', DIMENSIONLESS, true);
-    var axial_tilt = make_input_pair('Axial tilt', ANGLE, true);
+    var rotation_period = make_input_pair('Rotation period', { units: DURATION });
+    var flattening_coefficient = make_input_pair('Flattening coefficient', { units: DIMENSIONLESS });
+    var axial_tilt = make_input_pair('Axial tilt', { units: ANGLE });
 
     var fields = document.createElement('div');
     fields.classList.add('input-fields');
@@ -314,12 +340,12 @@ function add_secondary(caller) {
     rotational_properties.append(fields);
     el.appendChild(rotational_properties);
 
-    var semimajor_axis = make_input_pair('Semi-major axis', LENGTH, true);
-    var periapsis = make_input_pair('Periastron', LENGTH, true);
-    var apoapsis = make_input_pair('Apoastron', LENGTH, true);
-    var eccentricity = make_input_pair('Eccentricity', DIMENSIONLESS, true);
-    var period = make_input_pair('Orbital period', DURATION, true);
-    var inclination = make_input_pair('Orbital inclination', ANGLE, true);
+    var semimajor_axis = make_input_pair('Semi-major axis', { units: LENGTH });
+    var periapsis = make_input_pair('Periastron', { units: LENGTH });
+    var apoapsis = make_input_pair('Apoastron', { units: LENGTH });
+    var eccentricity = make_input_pair('Eccentricity', { units: DIMENSIONLESS });
+    var period = make_input_pair('Orbital period', { units: DURATION });
+    var inclination = make_input_pair('Orbital inclination', { units: ANGLE });
 
     var fields = document.createElement('div');
     fields.classList.add('input-fields');
@@ -373,8 +399,8 @@ function add_secondary(caller) {
     orbital_properties.append(fields);
     el.appendChild(orbital_properties);
 
-    var albedo = make_input_pair('Albedo', DIMENSIONLESS, true);
-    var equilibrium_temperature = make_input_pair('Equilibrium temperature', TEMPERATURE, true);
+    var albedo = make_input_pair('Albedo', { units: DIMENSIONLESS });
+    var equilibrium_temperature = make_input_pair('Equilibrium temperature', { units: TEMPERATURE });
 
     var fields = document.createElement('div');
     fields.classList.add('input-fields');
@@ -414,13 +440,13 @@ function add_tertiary(caller) {
     var el = document.createElement('div');
     el.classList.add('body-entry');
 
-    var name = make_input_pair('Name');
+    var name = make_input_pair('Name', {'prepend-name': false, 'type': 'text'});
     el.appendChild(name);
 
-    var mass = make_input_pair('Mass', MASS, true);
-    var radius = make_input_pair('Radius', LENGTH, true);
-    var density = make_input_pair('Density', DENSITY, true);
-    var surface_gravity = make_input_pair('Surface gravity', ACCELERATION, true);
+    var mass = make_input_pair('Mass', { units: MASS });
+    var radius = make_input_pair('Radius', { units: LENGTH });
+    var density = make_input_pair('Density', { units: DENSITY });
+    var surface_gravity = make_input_pair('Surface gravity', { units: ACCELERATION });
 
     var fields = document.createElement('div');
     fields.classList.add('input-fields');
@@ -445,12 +471,12 @@ function add_tertiary(caller) {
     physical_properties.append(fields);
     el.appendChild(physical_properties);
 
-    var semimajor_axis = make_input_pair('Semi-major axis', LENGTH, true);
-    var periapsis = make_input_pair('Periapsis', LENGTH, true);
-    var apoapsis = make_input_pair('Apoapsis', LENGTH, true);
-    var eccentricity = make_input_pair('Eccentricity', DIMENSIONLESS, true);
-    var period = make_input_pair('Orbital period', DURATION, true);
-    var inclination = make_input_pair('Orbital inclination', ANGLE, true);
+    var semimajor_axis = make_input_pair('Semi-major axis', { units: LENGTH });
+    var periapsis = make_input_pair('Periapsis', { units: LENGTH });
+    var apoapsis = make_input_pair('Apoapsis', { units: LENGTH });
+    var eccentricity = make_input_pair('Eccentricity', { units: DIMENSIONLESS });
+    var period = make_input_pair('Orbital period', { units: DURATION });
+    var inclination = make_input_pair('Orbital inclination', { units: ANGLE });
 
     var fields = document.createElement('div');
     fields.classList.add('input-fields');
@@ -527,7 +553,7 @@ function live_text(node, compute, ...sources) {
     function f() {
         var values = sources.map(x => {
             if (x.type === 'number') {
-                var unit = x.nextSibling.classList.contains('units') ? x.nextSibling.innerText : 'dimensionless';
+                var unit = get_units(x);
                 return unit_converter(unit, dimension(unit)[0])(parseFloat(x.value));
             } else return x.value;
         });
@@ -536,6 +562,38 @@ function live_text(node, compute, ...sources) {
             node.innerText = compute(...values);
         } else
             node.classList.add('hidden');
+    }
+    for (var source of sources) {
+        source.addEventListener('input', f);
+        var unit = source.nextSibling;
+        if (unit != null && unit.classList.contains('units'))
+            unit.addEventListener('click', f);
+    }
+}
+
+function computed_value(node, compute, ...sources) {
+    var input = node.getElementsByTagName('input')[0];
+    input.disabled = true;
+
+    sources = sources.map(x => x.getElementsByTagName('input')[0]);
+    function f() {
+        var values = sources.map(x => {
+            if (x.type === 'number') {
+                var unit = get_units(x);
+                return unit_converter(unit, dimension(unit)[0])(parseFloat(x.value));
+            } else return x.value;
+        });
+        if (values.every(x => x != undefined && isFinite(x))) {
+            if (input.type == 'number') {
+                var unit = get_units(input);
+                input.value = unit_converter(dimension(unit)[0], unit)(compute(...values));
+            } else
+                input.value = compute(...values);
+        } else
+            input.value = '';
+
+        var e = new Event('input');
+        input.dispatchEvent(e);
     }
     for (var source of sources) {
         source.addEventListener('input', f);
