@@ -401,7 +401,7 @@ function add_secondary(caller) {
 
     {
         var x = document.createElement('div');
-        x.innerHTML = '<div class="body-list"><div class="add-another" onclick="add_tertiary(this)">Add moon</div></div>';
+        x.innerHTML = '<div class="body-list"><button class="add-another" onclick="add_tertiary(this)">Add moon</button></div>';
         el.appendChild(x.firstChild);
     }
 
