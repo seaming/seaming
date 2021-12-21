@@ -168,65 +168,6 @@ input:disabled {
     display: none;
 }
 
-/* Stellar class colours from http://www.vendian.org/mncharity/dir3/starcolor/
-   Some values are intermediates calculated from values given there. */
-input[name="stellar-class"][data-value^="O"]  { background-color: #9db4ff; }
-input[name="stellar-class"][data-value^="B0"] { background-color: #a0b7ff; }
-input[name="stellar-class"][data-value^="B1"] { background-color: #a2b9ff; }
-input[name="stellar-class"][data-value^="B2"] { background-color: #a5bbff; }
-input[name="stellar-class"][data-value^="B3"] { background-color: #a7bcff; }
-input[name="stellar-class"][data-value^="B4"] { background-color: #a9beff; }
-input[name="stellar-class"][data-value^="B5"] { background-color: #aabfff; }
-input[name="stellar-class"][data-value^="B6"] { background-color: #acc0ff; }
-input[name="stellar-class"][data-value^="B7"] { background-color: #adc2ff; }
-input[name="stellar-class"][data-value^="B8"] { background-color: #afc3ff; }
-input[name="stellar-class"][data-value^="B9"] { background-color: #b3c6ff; }
-input[name="stellar-class"][data-value^="A0"] { background-color: #b6c9ff; }
-input[name="stellar-class"][data-value^="A1"] { background-color: #baccff; }
-input[name="stellar-class"][data-value^="A2"] { background-color: #BDCFFF; }
-input[name="stellar-class"][data-value^="A3"] { background-color: #c0d1ff; }
-input[name="stellar-class"][data-value^="A4"] { background-color: #C5D5FF; }
-input[name="stellar-class"][data-value^="A5"] { background-color: #cad8ff; }
-input[name="stellar-class"][data-value^="A6"] { background-color: #cfdbff; }
-input[name="stellar-class"][data-value^="A7"] { background-color: #d4deff; }
-input[name="stellar-class"][data-value^="A8"] { background-color: #dae2ff; }
-input[name="stellar-class"][data-value^="A9"] { background-color: #dfe5ff; }
-input[name="stellar-class"][data-value^="F0"] { background-color: #e4e8ff; }
-input[name="stellar-class"][data-value^="F1"] { background-color: #e9ebff; }
-input[name="stellar-class"][data-value^="F2"] { background-color: #edeeff; }
-input[name="stellar-class"][data-value^="F3"] { background-color: #f2f1ff; }
-input[name="stellar-class"][data-value^="F4"] { background-color: #f6f5ff; }
-input[name="stellar-class"][data-value^="F5"] { background-color: #fbf8ff; }
-input[name="stellar-class"][data-value^="F6"] { background-color: #fcf8fd; }
-input[name="stellar-class"][data-value^="F7"] { background-color: #fef9fb; }
-input[name="stellar-class"][data-value^="F8"] { background-color: #fff9f9; }
-input[name="stellar-class"][data-value^="F9"] { background-color: #fff8f6; }
-input[name="stellar-class"][data-value^="G0"] { background-color: #fff7f3; }
-input[name="stellar-class"][data-value^="G1"] { background-color: #fff6ef; }
-input[name="stellar-class"][data-value^="G2"] { background-color: #fff5ec; }
-input[name="stellar-class"][data-value^="G3"] { background-color: #fff5eb; }
-input[name="stellar-class"][data-value^="G4"] { background-color: #fff4e9; }
-input[name="stellar-class"][data-value^="G5"] { background-color: #fff4e8; }
-input[name="stellar-class"][data-value^="G6"] { background-color: #fff3e5; }
-input[name="stellar-class"][data-value^="G7"] { background-color: #fff2e2; }
-input[name="stellar-class"][data-value^="G8"] { background-color: #fff1df; }
-input[name="stellar-class"][data-value^="G9"] { background-color: #ffeed8; }
-input[name="stellar-class"][data-value^="K0"] { background-color: #ffebd1; }
-input[name="stellar-class"][data-value^="K1"] { background-color: #ffe6c8; }
-input[name="stellar-class"][data-value^="K2"] { background-color: #ffe1c0; }
-input[name="stellar-class"][data-value^="K3"] { background-color: #ffdcb7; }
-input[name="stellar-class"][data-value^="K4"] { background-color: #ffd7ae; }
-input[name="stellar-class"][data-value^="K5"] { background-color: #ffd1a4; }
-input[name="stellar-class"][data-value^="K6"] { background-color: #ffcc9a; }
-input[name="stellar-class"][data-value^="K7"] { background-color: #ffc690; }
-input[name="stellar-class"][data-value^="K8"] { background-color: #ffc48d; }
-input[name="stellar-class"][data-value^="K9"] { background-color: #ffc389; }
-input[name="stellar-class"][data-value^="M0"] { background-color: #ffc186; }
-input[name="stellar-class"][data-value^="M1"] { background-color: #ffc082; }
-input[name="stellar-class"][data-value^="M2"] { background-color: #ffbe7f; }
-input[name="stellar-class"][data-value^="M3"] { background-color: #ffbd7d; }
-input[name="stellar-class"][data-value^="M"]  { background-color: #ffbb7b; }
-
 .add-another {
     width: 100%;
     border: none;

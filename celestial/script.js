@@ -216,15 +216,15 @@ function add_primary(caller) {
     
     computed_value(stellar_class, (L,T) => {
         var Lsun = unit_converter('W', 'L⊙')(L);
-        return stellar_classification(T, Lsun);
+        return stellar_classification(T, Lsun).classification;
     }, luminosity, temperature);
 
-    var stellar_class_input = stellar_class.getElementsByTagName('input')[0];
-    stellar_class_input.addEventListener('input', () => {
-        if (stellar_class_input.value.length > 0)
-            stellar_class_input.dataset.value = stellar_class_input.value;
+    stellar_class.querySelector('input').addEventListener('input', e => {
+        var x = e.target;
+        if (x.value.length > 0)
+            x.style['background-color'] = stellar_color(x.value);
         else
-            delete stellar_class_input.dataset.value;
+            delete x.style['background-color'];
     });
     
     var physical_properties = document.createElement('div');
