@@ -77,6 +77,14 @@ function get_units(input) {
     return 'dimensionless';
 }
 
+function get_standard_value(input) {
+    var unit = get_units(input);
+    var raw = parseFloat(input.value);
+    if (!isNaN(raw))
+        return unit_converter(unit, dimension(unit)[0])(raw);
+    return NaN;
+}
+
 function measure_text_length(text) {
     ruler.innerText = text;
     return ruler.offsetWidth;
@@ -216,14 +224,14 @@ function add_primary(caller) {
     
     computed_value(stellar_class, (L,T) => {
         var Lsun = unit_converter('W', 'L⊙')(L);
-        return stellar_classification(T, Lsun).classification;
+        var c = stellar_classification(T, Lsun);
+        stellar_class.querySelector('input').style['background-color'] = c.color;
+        return c.classification;
     }, luminosity, temperature);
 
     stellar_class.querySelector('input').addEventListener('input', e => {
         var x = e.target;
-        if (x.value.length > 0)
-            x.style['background-color'] = stellar_color(x.value);
-        else
+        if (x.value.length < 1)
             delete x.style['background-color'];
     });
     
