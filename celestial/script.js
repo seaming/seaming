@@ -225,14 +225,18 @@ function add_primary(caller) {
     computed_value(stellar_class, (L,T) => {
         var Lsun = unit_converter('W', 'L⊙')(L);
         var c = stellar_classification(T, Lsun);
-        stellar_class.querySelector('input').style['background-color'] = c.color;
+        var x = stellar_class.querySelector('input');
+        x.style['background-color'] = c.color;
+        x.style['border'] = '1px solid #505050';
         return c.classification;
     }, luminosity, temperature);
 
     stellar_class.querySelector('input').addEventListener('input', e => {
         var x = e.target;
-        if (x.value.length < 1)
-            delete x.style['background-color'];
+        if (x.value.length < 1) {
+            x.style['background-color'] = null;
+            x.style['border'] = null;
+        }
     });
     
     var physical_properties = document.createElement('div');
