@@ -46,8 +46,50 @@ const SYMBOL_TABLE = {
     'L⊙': 3.828e26, // W
 }
 
-function round(x,n) {
+function round_dp(x,n) {
+    if (!isFinite(n))
+        return x;
     return Math.round((x + Number.EPSILON) * Math.pow(10,n)) / Math.pow(10,n);
+}
+
+function format_sf(x,n) {
+    if (!isFinite(x) || !isFinite(n))
+        return x;
+
+    if (x == 0)
+        return '0' + (n > 1 ? '.' + '0'.repeat(n-1) : '');
+
+    var e = Math.floor(Math.log10(Math.abs(x)));
+    var x = round_dp((x + Number.EPSILON) / Math.pow(10,e), n-1) * Math.pow(10,e);
+
+    // Comma-inserting regex from
+    // https://stackoverflow.com/questions/2901102/how-to-print-a-number-with-commas-as-thousands-separators-in-javascript
+
+    x = x.toString();
+    var [pre,post] = x.includes('.') ? x.split('.') : [x,''];
+    if (pre.includes('e'))
+        [pre, post] = [pre.split('e')[0], ''];
+
+    if (e >= 21) {
+        post = post.split('e')[0].slice(0, n-pre.length);
+        return (pre + post + '0'.repeat(e-n+1)).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    } else if (e <= -7) {
+        var tail = '0'.repeat(Math.abs(e) - pre.length) + pre + post.split('e')[0] + '0'.repeat(n);
+        var leading_zeros = tail.length > 0 ? tail.match(/(0*)[^0]/)[1].length : 0;
+        return '0.' + tail.slice(0, n + leading_zeros);
+    }
+
+    var tail = post + '0'.repeat(n);
+    var leading_zeros = post.length > 0 ? post.match(/(0*)[^0]/)[1].length : 0;
+    tail = tail.slice(0, Math.max(0, n + leading_zeros - (e < 0 ? 0 : pre.length)));
+    pre = pre.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+    return (pre || '0') + (tail.length > 0 ? '.' + tail : '');
+}
+
+function parse_float(s) {
+    // I can't believe I have to do this but the builtin `parseFloat` can't hanndle commas.
+    return parseFloat(s.replaceAll(',', ''));
 }
 
 function is_number(n) {
@@ -83,8 +125,8 @@ function get_units(input) {
 
 function get_standard_value(input) {
     var unit = get_units(input);
-    var raw = parseFloat(input.value);
-    if (!isNaN(raw))
+    var raw = parse_float(input.value);
+    if (isFinite(raw))
         return unit_converter(unit, dimension(unit)[0])(raw);
     return NaN;
 }
@@ -122,10 +164,16 @@ function make_input_pair(name, params) {
     container.classList.add('input-pair');
 
     var input = document.createElement('input');
-    input.type = params['type'] || 'number';
+
+    input.type = 'text'; // We always have to have it be text so validation doesn't complain.
+    input.dataset.type = params['type'] || 'number'
+
     input.name = name.toLowerCase().split('(')[0].trim().replace(' ','-');
     if (params['prepend-name'] === false)
         input.placeholder = name;
+
+    if (typeof params['sf'] == 'number')
+        input.dataset.sf = params['sf'];
 
     input.oninput = () => {
         if (input.value.length > 0)
@@ -190,10 +238,10 @@ function add_primary(caller) {
 
     el.appendChild(make_input_pair('Name', {'prepend-name': false, 'type': 'text'}));
 
-    var mass = make_input_pair('Mass', { units: MASS });
-    var radius = make_input_pair('Radius', { units: LENGTH });
-    var temperature = make_input_pair('Surface temperature', { units: TEMPERATURE });
-    var luminosity = make_input_pair('Luminosity', { units: LUMINOSITY });
+    var mass = make_input_pair('Mass', { units: MASS, sf: 6 });
+    var radius = make_input_pair('Radius', { units: LENGTH, sf: 6 });
+    var temperature = make_input_pair('Surface temperature', { units: TEMPERATURE, sf: 4 });
+    var luminosity = make_input_pair('Luminosity', { units: LUMINOSITY, sf: 6 });
     var stellar_class = make_input_pair('Stellar class', { 'type': 'text' });
     stellar_class.classList.add('stellar-class');
     
@@ -258,6 +306,8 @@ function add_primary(caller) {
                 unit.addEventListener('click', f);
         }
     }
+
+    compute_angular_sizes();
 }
 
 function total_primary_property(caller, property) {
@@ -268,7 +318,7 @@ function total_primary_property(caller, property) {
         x = [caller.parentNode.parentNode.querySelector('input[name='+property+']')];
 
     x = Array.from(x).map(a => {
-        if (a.type == 'number') {
+        if (a.dataset.type == 'number') {
             return get_standard_value(a);
         } else return a.value;
     });
@@ -283,7 +333,7 @@ function total_primary_property(caller, property) {
 //         x = caller.parentNode.parentNode.querySelectorAll('input');
     
 //     var values = properties.map(p => Array.from(x).filter(a => a.name == p).map(a => {
-//         if (a.type == 'number') {
+//         if (a.dataset.type == 'number') {
 //             var unit = get_units(a);
 //             return unit_converter(unit, dimension(unit)[0])(parseFloat(a.value));
 //         } else return a.value;
@@ -301,10 +351,10 @@ function add_secondary(caller) {
     var name = make_input_pair('Name', {'prepend-name': false, 'type': 'text'});
     el.appendChild(name);
 
-    var mass = make_input_pair('Mass', { units: MASS });
-    var radius = make_input_pair('Radius', { units: LENGTH });
-    var density = make_input_pair('Density', { units: DENSITY });
-    var surface_gravity = make_input_pair('Surface gravity', { units: ACCELERATION });
+    var mass = make_input_pair('Mass', { units: MASS, sf: 6 });
+    var radius = make_input_pair('Radius', { units: LENGTH, sf: 6 });
+    var density = make_input_pair('Density', { units: DENSITY, sf: 6 });
+    var surface_gravity = make_input_pair('Surface gravity', { units: ACCELERATION, sf: 6 });
 
     var fields = document.createElement('div');
     fields.classList.add('input-fields');
@@ -334,9 +384,9 @@ function add_secondary(caller) {
     physical_properties.append(fields);
     el.appendChild(physical_properties);
 
-    var rotation_period = make_input_pair('Rotation period', { units: DURATION });
-    var flattening_coefficient = make_input_pair('Flattening coefficient', { units: DIMENSIONLESS });
-    var axial_tilt = make_input_pair('Axial tilt', { units: ANGLE });
+    var rotation_period = make_input_pair('Rotation period', { units: DURATION, sf: 6 });
+    var flattening_coefficient = make_input_pair('Flattening coefficient', { units: DIMENSIONLESS, sf: 6 });
+    var axial_tilt = make_input_pair('Axial tilt', { units: ANGLE, sf: 6 });
 
     var fields = document.createElement('div');
     fields.classList.add('input-fields');
@@ -355,13 +405,13 @@ function add_secondary(caller) {
     rotational_properties.append(fields);
     el.appendChild(rotational_properties);
 
-    var semimajor_axis = make_input_pair('Semi-major axis', { units: LENGTH });
-    var periapsis = make_input_pair('Periastron', { units: LENGTH });
-    var apoapsis = make_input_pair('Apoastron', { units: LENGTH });
-    var eccentricity = make_input_pair('Eccentricity', { units: DIMENSIONLESS });
-    var period = make_input_pair('Orbital period', { units: DURATION });
-    var inclination = make_input_pair('Orbital inclination', { units: ANGLE });
-    var hill_radius = make_input_pair('Hill radius', { units: LENGTH });
+    var semimajor_axis = make_input_pair('Semi-major axis', { units: LENGTH, sf: 8 });
+    var periapsis = make_input_pair('Periastron', { units: LENGTH, sf: 8 });
+    var apoapsis = make_input_pair('Apoastron', { units: LENGTH, sf: 8 });
+    var eccentricity = make_input_pair('Eccentricity', { units: DIMENSIONLESS, sf: 8 });
+    var period = make_input_pair('Orbital period', { units: DURATION, sf: 8 });
+    var inclination = make_input_pair('Orbital inclination', { units: ANGLE, sf: 8 });
+    var hill_radius = make_input_pair('Hill radius', { units: LENGTH, sf: 4 });
 
     var fields = document.createElement('div');
     fields.classList.add('input-fields');
@@ -397,8 +447,8 @@ function add_secondary(caller) {
         if (year == undefined || day == undefined) return;
         var n = n || '';
         return (
-            "A sidereal year " + (n!==''?"on "+n:"") + " is " + round(year/day, 4) + " local sidereal days, or "
-            + round((year - day)/day, 4) + " local solar days long.");
+            "A sidereal year " + (n!==''?"on "+n:"") + " is " + round_dp(year/day, 4) + " local sidereal days, or "
+            + round_dp((year - day)/day, 4) + " local solar days long.");
     }, name, period, rotation_period);
     fields.appendChild(year_length);
 
@@ -410,8 +460,8 @@ function add_secondary(caller) {
         var u = unit_converter('s', 'hour');
         var solar_day = year * day / (year - day);
         return (
-            "A sidereal day " + (n!==''?"on "+n:"") + " is " + round(u(day), 4) + " hours long. "
-            + "A solar day is " + round(u(solar_day), 4) + " hours long.");
+            "A sidereal day " + (n!==''?"on "+n:"") + " is " + round_dp(u(day), 4) + " hours long. "
+            + "A solar day is " + round_dp(u(solar_day), 4) + " hours long.");
     }, name, period, rotation_period);
     fields.appendChild(day_length);
 
@@ -438,8 +488,8 @@ function add_secondary(caller) {
     orbital_properties.append(fields);
     el.appendChild(orbital_properties);
 
-    var albedo = make_input_pair('Albedo', { units: DIMENSIONLESS });
-    var equilibrium_temperature = make_input_pair('Equilibrium temperature', { units: TEMPERATURE });
+    var albedo = make_input_pair('Albedo', { units: DIMENSIONLESS, sf: 6 });
+    var equilibrium_temperature = make_input_pair('Equilibrium temperature', { units: TEMPERATURE, sf: 4 });
 
     var fields = document.createElement('div');
     fields.classList.add('input-fields');
@@ -473,6 +523,8 @@ function add_secondary(caller) {
     el.appendChild(delete_button());
 
     caller.parentNode.insertBefore(el, caller);
+
+    compute_angular_sizes();
 }
 
 function add_tertiary(caller) {
@@ -482,10 +534,10 @@ function add_tertiary(caller) {
     var name = make_input_pair('Name', {'prepend-name': false, 'type': 'text'});
     el.appendChild(name);
 
-    var mass = make_input_pair('Mass', { units: MASS });
-    var radius = make_input_pair('Radius', { units: LENGTH });
-    var density = make_input_pair('Density', { units: DENSITY });
-    var surface_gravity = make_input_pair('Surface gravity', { units: ACCELERATION });
+    var mass = make_input_pair('Mass', { units: MASS, sf: 6 });
+    var radius = make_input_pair('Radius', { units: LENGTH, sf: 6 });
+    var density = make_input_pair('Density', { units: DENSITY, sf: 6 });
+    var surface_gravity = make_input_pair('Surface gravity', { units: ACCELERATION, sf: 6 });
 
     var fields = document.createElement('div');
     fields.classList.add('input-fields');
@@ -515,12 +567,12 @@ function add_tertiary(caller) {
     physical_properties.append(fields);
     el.appendChild(physical_properties);
 
-    var semimajor_axis = make_input_pair('Semi-major axis', { units: LENGTH });
-    var periapsis = make_input_pair('Periapsis', { units: LENGTH });
-    var apoapsis = make_input_pair('Apoapsis', { units: LENGTH });
-    var eccentricity = make_input_pair('Eccentricity', { units: DIMENSIONLESS });
-    var period = make_input_pair('Orbital period', { units: DURATION });
-    var inclination = make_input_pair('Orbital inclination', { units: ANGLE });
+    var semimajor_axis = make_input_pair('Semi-major axis', { units: LENGTH, sf: 8 });
+    var periapsis = make_input_pair('Periapsis', { units: LENGTH, sf: 8 });
+    var apoapsis = make_input_pair('Apoapsis', { units: LENGTH, sf: 8 });
+    var eccentricity = make_input_pair('Eccentricity', { units: DIMENSIONLESS, sf: 8 });
+    var period = make_input_pair('Orbital period', { units: DURATION, sf: 8 });
+    var inclination = make_input_pair('Orbital inclination', { units: ANGLE, sf: 8 });
 
     var fields = document.createElement('div');
     fields.classList.add('input-fields');
@@ -577,11 +629,11 @@ function add_tertiary(caller) {
     live_text(sidereal_month_length, (n,p_n,p_year,p_day,T) => {
         if (p_day == undefined || T == undefined) return;
         var text = ("A sidereal month " + (n?"of "+n:"") + " is "
-            + round(T/p_day,4) + " local "  + (p_n?p_n+' ':'') + " sidereal days" );
+            + round_dp(T/p_day,4) + " local "  + (p_n?p_n+' ':'') + " sidereal days" );
         if (p_year != undefined) {
             var solar_day = p_year * p_day / (p_year - p_day);
-            text += ", or " + round(T/solar_day,4) + " local " + (p_n?p_n+' ':'') + " solar days long."
-            text += (" There are " + round(p_year/T,4) + " sidereal months in a sidereal year.")
+            text += ", or " + round_dp(T/solar_day,4) + " local " + (p_n?p_n+' ':'') + " solar days long."
+            text += (" There are " + round_dp(p_year/T,4) + " sidereal months in a sidereal year.")
         } else text += " long.";
         return text;
     }, name, primary_name, primary_year, primary_day, period);
@@ -593,10 +645,10 @@ function add_tertiary(caller) {
         if (p_day == undefined || p_year == undefined || T == undefined) return;
         var lunar_month = p_year * T / (p_year - T);
         var text = ("A lunation (lunar month) " + (n?"of "+n:"") + " is "
-            + round(lunar_month/p_day,4) + " local "  + (p_n?p_n+' ':'') + " sidereal days" );
+            + round_dp(lunar_month/p_day,4) + " local "  + (p_n?p_n+' ':'') + " sidereal days" );
         var solar_day = p_year * p_day / (p_year - p_day);
-        text += ", or " + round(lunar_month/solar_day,4) + " local " + (p_n?p_n+' ':'') + " solar days long."
-        text += (" There are " + round(p_year/lunar_month,4) + " lunations in a sidereal year.")
+        text += ", or " + round_dp(lunar_month/solar_day,4) + " local " + (p_n?p_n+' ':'') + " solar days long."
+        text += (" There are " + round_dp(p_year/lunar_month,4) + " lunations in a sidereal year.")
         return text;
     }, name, primary_name, primary_year, primary_day, period);
     fields.appendChild(lunar_month_length);
@@ -625,6 +677,8 @@ function add_tertiary(caller) {
     el.appendChild(delete_button());
 
     caller.parentNode.insertBefore(el, caller);
+
+    compute_angular_sizes();
 }
 
 function live_text(node, compute, ...sources) {
@@ -632,7 +686,7 @@ function live_text(node, compute, ...sources) {
     sources = sources.map(x => x.getElementsByTagName('input')[0]);
     function f() {
         var values = sources.map(x => {
-            if (x.type === 'number') {
+            if (x.dataset.type === 'number') {
                 var v = get_standard_value(x);
                 return is_number(v) ? v : undefined;
             } else return x.value || undefined;
@@ -659,7 +713,7 @@ function computed_value(node, compute, ...sources) {
     sources = sources.map(x => x.getElementsByTagName('input')[0]);
     function f() {
         var values = sources.map(x => {
-            if (x.type === 'number') {
+            if (x.dataset.type == 'number') {
                 var v = get_standard_value(x);
                 return is_number(v) ? v : undefined;
             } else return x.value;
@@ -669,10 +723,12 @@ function computed_value(node, compute, ...sources) {
         if (value == undefined)
             input.value = '';
         else {
-            if (input.type == 'number') {
+            if (input.dataset.type == 'number') {
                 var unit = get_units(input);
-                if (is_number(value))
-                    input.value = unit_converter(dimension(unit)[0], unit)(value);
+                if (is_number(value)) {
+                    var v = unit_converter(dimension(unit)[0], unit)(value);
+                    input.value = format_sf(v, parseFloat(input.dataset.sf));
+                }
             } else
                 input.value = value;    
         }
@@ -716,9 +772,9 @@ function linked_pair(a, b, f_a, f_b, params) {
         var has_data = x => x.input.value.length > 0 && x.input.dataset.locked_by != id;
         var filled = x => x.input.value.length != 0 && !x.input.disabled;
 
-        a.value = parseFloat(a.input.value);
+        a.value = parse_float(a.input.value);
         a.unit = a.units !== undefined ? a.units.innerText : 'dimensionless';
-        b.value = parseFloat(b.input.value);
+        b.value = parse_float(b.input.value);
         b.unit = b.units !== undefined ? b.units.innerText : 'dimensionless';
 
         var e = new Event('input');
@@ -730,7 +786,7 @@ function linked_pair(a, b, f_a, f_b, params) {
                 unit_converter(a.unit, dimension(a.unit)[0])(a.value)
             ));
             if (value != undefined && isFinite(value)) {
-                b.input.value = value;
+                b.input.value = format_sf(value, parseFloat(b.input.dataset.sf));
                 b.input.disabled = true;
                 b.input.dataset.locked_by = id;
                 b.input.dispatchEvent(e);
@@ -742,7 +798,7 @@ function linked_pair(a, b, f_a, f_b, params) {
             if (value != undefined && isFinite(value)) {
                 a.input.disabled = true;
                 a.input.dataset.locked_by = id;
-                a.input.value = value;
+                a.input.value = format_sf(value, parseFloat(a.input.dataset.sf));
                 a.input.dispatchEvent(e);
             }
         } else {
@@ -805,11 +861,11 @@ function linked_triple(a, b, c, f_a, f_b, f_c, params) {
         var has_data = x => x.input.value.length > 0 && x.input.dataset.locked_by != id;
         var filled = x => x.input.value.length != 0 && !x.input.disabled;
         
-        a.value = parseFloat(a.input.value);
+        a.value = parse_float(a.input.value);
         a.unit = a.units !== undefined ? a.units.innerText : 'dimensionless';
-        b.value = parseFloat(b.input.value);
+        b.value = parse_float(b.input.value);
         b.unit = b.units !== undefined ? b.units.innerText : 'dimensionless';
-        c.value = parseFloat(c.input.value);
+        c.value = parse_float(c.input.value);
         c.unit = c.units !== undefined ? c.units.innerText : 'dimensionless';
 
         var e = new Event('input');
@@ -822,7 +878,7 @@ function linked_triple(a, b, c, f_a, f_b, f_c, params) {
                 unit_converter(b.unit, dimension(b.unit)[0])(b.value)
             ));
             if (value != undefined && isFinite(value)) {
-                c.input.value = value;
+                c.input.value = format_sf(value, parseFloat(c.input.dataset.sf));
                 c.input.disabled = true;
                 c.input.dataset.locked_by = id;
                 c.input.dispatchEvent(e);
@@ -833,7 +889,7 @@ function linked_triple(a, b, c, f_a, f_b, f_c, params) {
                 unit_converter(c.unit, dimension(c.unit)[0])(c.value)
             ));
             if (value != undefined && isFinite(value)) {
-                a.input.value = value;
+                a.input.value = format_sf(value, parseFloat(a.input.dataset.sf));
                 a.input.disabled = true;
                 a.input.dataset.locked_by = id;
                 a.input.dispatchEvent(e);
@@ -844,7 +900,7 @@ function linked_triple(a, b, c, f_a, f_b, f_c, params) {
                 unit_converter(c.unit, dimension(c.unit)[0])(c.value)
             ));
             if (value != undefined && isFinite(value)) {
-                b.input.value = value;
+                b.input.value = format_sf(value, parseFloat(b.input.dataset.sf));
                 b.input.disabled = true;
                 b.input.dataset.locked_by = id;
                 b.input.dispatchEvent(e);
@@ -899,7 +955,20 @@ function linked_triple(a, b, c, f_a, f_b, f_c, params) {
     return f;
 }
 
+var angular_sizes_warning;
+
+function compute_angular_sizes() {
+    var bodies = document.getElementsByClassName('body-entry');
+    if (bodies.length >= 2)
+        angular_sizes_warning.classList.add('hidden');
+    else {
+        angular_sizes_warning.classList.remove('hidden');
+        return;
+    }
+}
+
 window.onload = () => {
     ruler = document.getElementById('ruler');
     num_primaries_warning = document.getElementById('at-least-one-primary-warning');
+    angular_sizes_warning = document.getElementById('at-least-two-bodies-warning');
 };
