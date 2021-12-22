@@ -131,14 +131,6 @@ input {
     background-color: inherit;
     border: 1px solid #d0d0d0;
     border-radius: var(--border-radius);
-    /* Firefox, hide spin wheel on number inputs */
-    -moz-appearance: textfield;
-}
-
-/* Hide spin wheel on number inputs */
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
 }
 
 input:disabled {
