@@ -50,6 +50,10 @@ function round(x,n) {
     return Math.round((x + Number.EPSILON) * Math.pow(10,n)) / Math.pow(10,n);
 }
 
+function is_number(n) {
+    return typeof n === 'number' && isFinite(n);
+}
+
 function unit_converter(a,b) {
     if (a === b)
         return x => x;
@@ -71,7 +75,7 @@ function dimension(unit) {
 }
 
 function get_units(input) {
-    var unit = input.nextSibling;
+    var unit = input.nextElementSibling;
     if (unit != null && unit.classList.contains('units'))
         return unit.innerText;
     return 'dimensionless';
@@ -223,6 +227,7 @@ function add_primary(caller) {
         (R,T) => 4 * Math.PI * R*R * STEFAN_BOLTZMANN_CONSTANT * T*T*T*T);
     
     computed_value(stellar_class, (L,T) => {
+        if (L == undefined || T == undefined) return;
         var Lsun = unit_converter('W', 'L⊙')(L);
         var c = stellar_classification(T, Lsun);
         var x = stellar_class.querySelector('input');
@@ -254,7 +259,7 @@ function add_primary(caller) {
     for (var [field, f] of primary_watchers) {
         for (var input of document.querySelectorAll('#primaries .body-entry input[name='+field+']')) {
             input.addEventListener('input', f);
-            var unit = input.nextSibling;
+            var unit = input.nextElementSibling;
             if (unit != null && unit.classList.contains('units'))
                 unit.addEventListener('click', f);
         }
@@ -270,11 +275,10 @@ function total_primary_property(caller, property) {
 
     x = Array.from(x).map(a => {
         if (a.type == 'number') {
-            var unit = get_units(a);
-            return unit_converter(unit, dimension(unit)[0])(parseFloat(a.value));
+            return get_standard_value(a);
         } else return a.value;
     });
-    return x.reduce((partial, v) => partial + v, 0);
+    return x.reduce((partial, v) => partial + v, 0) || undefined;
 }
 
 // function calc_primary_property(caller, f, ...properties) {
@@ -324,6 +328,11 @@ function add_secondary(caller) {
         (r,g) => r*r*g / GRAVITATIONAL_CONSTANT,
         (m,g) => Math.sqrt(GRAVITATIONAL_CONSTANT * m / g),
         (m,r) => GRAVITATIONAL_CONSTANT * m / (r*r))
+    
+    linked_triple(radius, density, surface_gravity,
+        (d,g) => 3 * g / (4 * Math.PI * GRAVITATIONAL_CONSTANT * d),
+        (r,g) => 3 * g / (4 * Math.PI * GRAVITATIONAL_CONSTANT * r),
+        (r,d) => 4 * Math.PI / 3 * GRAVITATIONAL_CONSTANT * d * r);
 
     var physical_properties = document.createElement('div');
     physical_properties.classList.add('input-row');
@@ -358,6 +367,7 @@ function add_secondary(caller) {
     var eccentricity = make_input_pair('Eccentricity', { units: DIMENSIONLESS });
     var period = make_input_pair('Orbital period', { units: DURATION });
     var inclination = make_input_pair('Orbital inclination', { units: ANGLE });
+    var hill_radius = make_input_pair('Hill radius', { units: LENGTH });
 
     var fields = document.createElement('div');
     fields.classList.add('input-fields');
@@ -367,10 +377,31 @@ function add_secondary(caller) {
     fields.appendChild(eccentricity);
     fields.appendChild(period);
     fields.appendChild(inclination);
+    fields.appendChild(hill_radius);
+
+    var roche_limit_warning = document.createElement('div');
+    roche_limit_warning.classList.add('description', 'info', 'warning');
+    live_text(roche_limit_warning, (n,m,r,a) => {
+        var p_m = total_primary_property(el, 'mass');
+        if (p_m == undefined || m == undefined || r == undefined || a == undefined) return;
+        var roche_distance = r * Math.pow(2 * p_m / m, 1/3);
+        if (roche_distance < a) return;
+        var text = (n || 'This body') + " is too close to its primary!";
+        text += " It orbits within the Roche limit of the primary and will be torn apart by tidal forces.";
+        return text;
+    }, name, mass, radius, semimajor_axis);
+    fields.appendChild(roche_limit_warning);
+
+    computed_value(hill_radius, (m,a,e) => {
+        var M = total_primary_property(el, 'mass');
+        return a * (1 - (e || 0)) * Math.pow(m / (3*M), 1/3);
+    }, mass, semimajor_axis, eccentricity);
 
     var year_length = document.createElement('div');
     year_length.classList.add('description');
     live_text(year_length, (n,year,day) => {
+        if (year == undefined || day == undefined) return;
+        var n = n || '';
         return (
             "A sidereal year " + (n!==''?"on "+n:"") + " is " + round(year/day, 4) + " local sidereal days, or "
             + round((year - day)/day, 4) + " local solar days long.");
@@ -380,6 +411,8 @@ function add_secondary(caller) {
     var day_length = document.createElement('div');
     day_length.classList.add('description');
     live_text(day_length, (n,year,day) => {
+        if (year == undefined || day == undefined) return;
+        var n = n || '';
         var u = unit_converter('s', 'hour');
         var solar_day = year * day / (year - day);
         return (
@@ -475,7 +508,12 @@ function add_tertiary(caller) {
     linked_triple(mass, radius, surface_gravity,
         (r,g) => r*r*g / GRAVITATIONAL_CONSTANT,
         (m,g) => Math.sqrt(GRAVITATIONAL_CONSTANT * m / g),
-        (m,r) => GRAVITATIONAL_CONSTANT * m / (r*r))
+        (m,r) => GRAVITATIONAL_CONSTANT * m / (r*r));
+    
+    linked_triple(radius, density, surface_gravity,
+        (d,g) => 3 * g / (4 * Math.PI * GRAVITATIONAL_CONSTANT * d),
+        (r,g) => 3 * g / (4 * Math.PI * GRAVITATIONAL_CONSTANT * r),
+        (r,d) => 4 * Math.PI / 3 * GRAVITATIONAL_CONSTANT * d * r);
 
     var physical_properties = document.createElement('div');
     physical_properties.classList.add('input-row');
@@ -502,6 +540,38 @@ function add_tertiary(caller) {
     var primary_name = caller.parentNode.parentNode.querySelector('input[name=name]');
     primary_name = primary_name.parentNode;
 
+    var primary_radius = caller.parentNode.parentNode.querySelector('input[name=radius]');
+    primary_radius = primary_radius.parentNode;
+
+    var primary_density = caller.parentNode.parentNode.querySelector('input[name=density]');
+    primary_density = primary_density.parentNode;
+
+    var roche_limit_warning = document.createElement('div');
+    roche_limit_warning.classList.add('description', 'info', 'warning');
+    live_text(roche_limit_warning, (n,p_n,p_r,p_d,d,a) => {
+        if (p_r == undefined || p_d == undefined || d == undefined || a == undefined) return;
+        var roche_distance = p_r * Math.pow(2 * p_d / d, 1/3);
+        if (roche_distance < a) return;
+        var text = (n || 'This body') + " is too close to " + (p_n || 'its primary') + '!';
+        text += " It orbits within the Roche limit of " + (p_n || 'the primary') + " and will be torn apart by tidal forces.";
+        return text;
+    }, name, primary_name, primary_radius, primary_density, density, semimajor_axis);
+    fields.appendChild(roche_limit_warning);
+
+    var primary_hill_radius = caller.parentNode.parentNode.querySelector('input[name=hill-radius]');
+    primary_hill_radius = primary_hill_radius.parentNode;
+
+    var hill_sphere_warning = document.createElement('div');
+    hill_sphere_warning.classList.add('description', 'info', 'warning');
+    live_text(hill_sphere_warning, (n,p_n,h,a) => {
+        if (h == undefined || a == undefined) return;
+        if (a < h) return;
+        var text = (n || 'This body') + " is too far from " + (p_n || 'its primary') + '!';
+        text += " It orbits outside the Hill sphere of " + (p_n || 'the primary') + " and will be pulled out of its orbit.";
+        return text;
+    }, name, primary_name, primary_hill_radius, semimajor_axis);
+    fields.appendChild(hill_sphere_warning);
+
     var primary_year = caller.parentNode.parentNode.querySelector('input[name=orbital-period]');
     primary_year = primary_year.parentNode;
 
@@ -511,25 +581,29 @@ function add_tertiary(caller) {
     var sidereal_month_length = document.createElement('div');
     sidereal_month_length.classList.add('description');
     live_text(sidereal_month_length, (n,p_n,p_year,p_day,T) => {
-        var solar_day = p_year * p_day / (p_year - p_day);
-        return (
-            "A sidereal month " + (n!==''?"of "+n:"") + " is " + round(T/p_day,4) + " local "
-            + (p_n!==''?p_n+' ':'') + " sidereal days, or " + round(T/solar_day,4) + " local "
-            + (p_n!==''?p_n+' ':'') + " solar days long. There are " + round(p_year/T,4)
-            + " sidereal months in a sidereal year." );
+        if (p_day == undefined || T == undefined) return;
+        var text = ("A sidereal month " + (n?"of "+n:"") + " is "
+            + round(T/p_day,4) + " local "  + (p_n?p_n+' ':'') + " sidereal days" );
+        if (p_year != undefined) {
+            var solar_day = p_year * p_day / (p_year - p_day);
+            text += ", or " + round(T/solar_day,4) + " local " + (p_n?p_n+' ':'') + " solar days long."
+            text += (" There are " + round(p_year/T,4) + " sidereal months in a sidereal year.")
+        } else text += " long.";
+        return text;
     }, name, primary_name, primary_year, primary_day, period);
     fields.appendChild(sidereal_month_length);
 
     var lunar_month_length = document.createElement('div');
     lunar_month_length.classList.add('description');
     live_text(lunar_month_length, (n,p_n,p_year,p_day,T) => {
-        var solar_day = p_year * p_day / (p_year - p_day);
+        if (p_day == undefined || p_year == undefined || T == undefined) return;
         var lunar_month = p_year * T / (p_year - T);
-        return (
-            "A lunation (lunar month) " + (n!==''?"of "+n:"") + " is " + round(lunar_month/p_day, 4) + " local "
-            + (p_n!==''?p_n+' ':'') + " sidereal days long, or " + round(lunar_month/solar_day, 4) + " local "
-            + (p_n!==''?p_n+' ':'') + " solar days. There are " + round(p_year/lunar_month,4)
-            + " lunations in a sidereal year." );
+        var text = ("A lunation (lunar month) " + (n?"of "+n:"") + " is "
+            + round(lunar_month/p_day,4) + " local "  + (p_n?p_n+' ':'') + " sidereal days" );
+        var solar_day = p_year * p_day / (p_year - p_day);
+        text += ", or " + round(lunar_month/solar_day,4) + " local " + (p_n?p_n+' ':'') + " solar days long."
+        text += (" There are " + round(p_year/lunar_month,4) + " lunations in a sidereal year.")
+        return text;
     }, name, primary_name, primary_year, primary_day, period);
     fields.appendChild(lunar_month_length);
 
@@ -565,19 +639,20 @@ function live_text(node, compute, ...sources) {
     function f() {
         var values = sources.map(x => {
             if (x.type === 'number') {
-                var unit = get_units(x);
-                return unit_converter(unit, dimension(unit)[0])(parseFloat(x.value));
-            } else return x.value;
+                var v = get_standard_value(x);
+                return is_number(v) ? v : undefined;
+            } else return x.value || undefined;
         });
-        if (values.every(x => x != undefined && isFinite(x))) {
+        var text = compute(...values);
+        if (typeof text === 'string' && text.length > 0) {
             node.classList.remove('hidden');
-            node.innerText = compute(...values);
+            node.innerText = text;
         } else
             node.classList.add('hidden');
     }
     for (var source of sources) {
         source.addEventListener('input', f);
-        var unit = source.nextSibling;
+        var unit = source.nextElementSibling;
         if (unit != null && unit.classList.contains('units'))
             unit.addEventListener('click', f);
     }
@@ -591,28 +666,38 @@ function computed_value(node, compute, ...sources) {
     function f() {
         var values = sources.map(x => {
             if (x.type === 'number') {
-                var unit = get_units(x);
-                return unit_converter(unit, dimension(unit)[0])(parseFloat(x.value));
+                var v = get_standard_value(x);
+                return is_number(v) ? v : undefined;
             } else return x.value;
         });
-        if (values.every(x => x != undefined && isFinite(x))) {
+
+        var value = compute(...values);
+        if (value == undefined)
+            input.value = '';
+        else {
             if (input.type == 'number') {
                 var unit = get_units(input);
-                input.value = unit_converter(dimension(unit)[0], unit)(compute(...values));
+                if (is_number(value))
+                    input.value = unit_converter(dimension(unit)[0], unit)(value);
             } else
-                input.value = compute(...values);
-        } else
-            input.value = '';
-
+                input.value = value;    
+        }
+        
         var e = new Event('input');
         input.dispatchEvent(e);
     }
+
+    var unit = input.nextElementSibling;
+    if (unit != null && unit.classList.contains('units'))
+        unit.addEventListener('click', f);
+
     for (var source of sources) {
         source.addEventListener('input', f);
-        var unit = source.nextSibling;
+        var unit = source.nextElementSibling;
         if (unit != null && unit.classList.contains('units'))
             unit.addEventListener('click', f);
     }
+
 }
 
 var sync_lock = 0;
@@ -632,7 +717,10 @@ function linked_pair(a, b, f_a, f_b, params) {
     };
 
     function f(event) {
-        if (event.source_id == id) return;
+        if (event.source_id != undefined && event.source_id.includes(id)) return;
+
+        var has_data = x => x.input.value.length > 0 && x.input.dataset.locked_by != id;
+        var filled = x => x.input.value.length != 0 && !x.input.disabled;
 
         a.value = parseFloat(a.input.value);
         a.unit = a.units !== undefined ? a.units.innerText : 'dimensionless';
@@ -640,9 +728,10 @@ function linked_pair(a, b, f_a, f_b, params) {
         b.unit = b.units !== undefined ? b.units.innerText : 'dimensionless';
 
         var e = new Event('input');
-        e.source_id = id;
+        e.source_id = event.source_id || [];
+        e.source_id.push(id);
 
-        if (a.input.value.length > 0 && a.input.dataset.locked_by != id) {
+        if (has_data(a) && !filled(b)) {
             var value = unit_converter(dimension(b.unit)[0], b.unit)(f_b(
                 unit_converter(a.unit, dimension(a.unit)[0])(a.value)
             ));
@@ -652,7 +741,7 @@ function linked_pair(a, b, f_a, f_b, params) {
                 b.input.dataset.locked_by = id;
                 b.input.dispatchEvent(e);
             }
-        } else if (b.input.value.length > 0 && b.input.dataset.locked_by != id) {
+        } else if (has_data(b) && !filled(a)) {
             var value = unit_converter(dimension(a.unit)[0], a.unit)(f_a(
                 unit_converter(b.unit, dimension(b.unit)[0])(b.value),
             ));
@@ -687,7 +776,7 @@ function linked_pair(a, b, f_a, f_b, params) {
         if ('watch' in params) {
             params['watch'].forEach(input => {
                 input.addEventListener('input', f);
-                var units = input.nextSibling;
+                var units = input.nextElementSibling;
                 if (units.classList.contains('units'))
                     units.addEventListener('click', f);
             });
@@ -717,11 +806,10 @@ function linked_triple(a, b, c, f_a, f_b, f_c, params) {
     };
 
     function f(event) {
-        if (event.source_id == id) return;
+        if (event.source_id != undefined && event.source_id.includes(id)) return;
 
-        var a_filled = a.input.value.length > 0 && a.input.dataset.locked_by != id;
-        var b_filled = b.input.value.length > 0 && b.input.dataset.locked_by != id;
-        var c_filled = c.input.value.length > 0 && c.input.dataset.locked_by != id;
+        var has_data = x => x.input.value.length > 0 && x.input.dataset.locked_by != id;
+        var filled = x => x.input.value.length != 0 && !x.input.disabled;
         
         a.value = parseFloat(a.input.value);
         a.unit = a.units !== undefined ? a.units.innerText : 'dimensionless';
@@ -731,9 +819,10 @@ function linked_triple(a, b, c, f_a, f_b, f_c, params) {
         c.unit = c.units !== undefined ? c.units.innerText : 'dimensionless';
 
         var e = new Event('input');
-        e.source_id = id;
+        e.source_id = event.source_id || [];
+        e.source_id.push(id);
 
-        if (a_filled && b_filled) {
+        if (has_data(a) && has_data(b) && !filled(c)) {
             var value = unit_converter(dimension(c.unit)[0], c.unit)(f_c(
                 unit_converter(a.unit, dimension(a.unit)[0])(a.value),
                 unit_converter(b.unit, dimension(b.unit)[0])(b.value)
@@ -744,7 +833,7 @@ function linked_triple(a, b, c, f_a, f_b, f_c, params) {
                 c.input.dataset.locked_by = id;
                 c.input.dispatchEvent(e);
             }
-        } else if (b_filled && c_filled) {
+        } else if (has_data(b) && has_data(c) && !filled(a)) {
             var value = unit_converter(dimension(a.unit)[0], a.unit)(f_a(
                 unit_converter(b.unit, dimension(b.unit)[0])(b.value),
                 unit_converter(c.unit, dimension(c.unit)[0])(c.value)
@@ -755,7 +844,7 @@ function linked_triple(a, b, c, f_a, f_b, f_c, params) {
                 a.input.dataset.locked_by = id;
                 a.input.dispatchEvent(e);
             }
-        } else if (a_filled && c_filled) {
+        } else if (has_data(a) && has_data(c) && !filled(b)) {
             var value = unit_converter(dimension(b.unit)[0], b.unit)(f_b(
                 unit_converter(a.unit, dimension(a.unit)[0])(a.value),
                 unit_converter(c.unit, dimension(c.unit)[0])(c.value)
@@ -806,7 +895,7 @@ function linked_triple(a, b, c, f_a, f_b, f_c, params) {
         if ('watch' in params) {
             params['watch'].forEach(input => {
                 input.addEventListener('input', f);
-                var units = input.nextSibling;
+                var units = input.nextElementSibling;
                 if (units.classList.contains('units'))
                     units.addEventListener('click', f);
             });

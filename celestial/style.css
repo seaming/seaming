@@ -201,10 +201,14 @@ input:disabled {
     border-radius: var(--border-radius);
 }
 
-.info.warning {
+.warning {
     border: 1px solid #e95151;
     background-color: #e9515140;
     color: #c73131;
+}
+
+.description.warning {
+    margin-bottom: 0;
 }
 
 .locked {
