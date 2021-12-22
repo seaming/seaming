@@ -94,12 +94,6 @@ function measure_text_length(text) {
     return ruler.offsetWidth;
 }
 
-function div_wrap(x) {
-    var wrapper = document.createElement('div');
-    wrapper.appendChild(x);
-    return wrapper;
-}
-
 function delete_button(is_primary) {
     var button = document.createElement('span');
     button.classList.add('delete');
@@ -192,7 +186,7 @@ function check_primaries() {
 
 function add_primary(caller) {
     var el = document.createElement('div');
-    el.classList.add('body-entry');
+    el.classList.add('body-entry', 'primary');
 
     el.appendChild(make_input_pair('Name', {'prepend-name': false, 'type': 'text'}));
 
@@ -302,7 +296,7 @@ function add_secondary(caller) {
     if (num_primaries < 1) return;
 
     var el = document.createElement('div');
-    el.classList.add('body-entry');
+    el.classList.add('body-entry', 'secondary');
 
     var name = make_input_pair('Name', {'prepend-name': false, 'type': 'text'});
     el.appendChild(name);
@@ -483,7 +477,7 @@ function add_secondary(caller) {
 
 function add_tertiary(caller) {
     var el = document.createElement('div');
-    el.classList.add('body-entry');
+    el.classList.add('body-entry', 'tertiary');
 
     var name = make_input_pair('Name', {'prepend-name': false, 'type': 'text'});
     el.appendChild(name);
