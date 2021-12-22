@@ -60,7 +60,10 @@ function format_sf(x,n) {
         return '0' + (n > 1 ? '.' + '0'.repeat(n-1) : '');
 
     var e = Math.floor(Math.log10(Math.abs(x)));
-    var x = round_dp((x + Number.EPSILON) / Math.pow(10,e), n-1) * Math.pow(10,e);
+    var x = round_dp(x / Math.pow(10,e), n-1) * Math.pow(10,e);
+
+    if (Math.abs(e) >= 50)
+        return x.toString();
 
     // Comma-inserting regex from
     // https://stackoverflow.com/questions/2901102/how-to-print-a-number-with-commas-as-thousands-separators-in-javascript
