@@ -62,7 +62,8 @@ dt {
 }
 
 object[data$=".svg"] {
-    width: 39%;
+    width: 50%;
+    margin-top: 1rem;
     margin-left: 1rem;
 }
 

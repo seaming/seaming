@@ -1,7 +1,3 @@
-function lerp(x1, y1, x2, y2, x) {
-    return y1 + (x - x1) * (y2 - y1) / (x2 - x1);
-}
-
 var HR_diagram;
 
 function set_diagram(obj) {
@@ -21,6 +17,7 @@ function update_HR_diagram() {
     var ymin = [5, HR_diagram.getElementById('luminosity-max').getBBox().y];
 
     [...document.querySelectorAll('#primaries .body-entry')].forEach(body => {
+
         var luminosity = get_standard_value(body.querySelector('input[name=luminosity]'));
         var temperature = get_standard_value(body.querySelector('input[name=surface-temperature]'));
         var radius = get_standard_value(body.querySelector('input[name=radius]'));
@@ -62,7 +59,7 @@ function update_HR_diagram() {
             HR_diagram.appendChild(label);
 
             var lb = label.getBBox();
-            label.setAttributeNS(null, 'x', x + (x-lb.x < 3*box.width/4 ? r*1.5 : -(r*1.5+lb.width)));
+            label.setAttributeNS(null, 'x', x + (x-lb.x < 3*box.width/4 ? r+2 : -(r+2+lb.width)));
             label.setAttributeNS(null, 'y', y + lb.height / 3);
         }
     });

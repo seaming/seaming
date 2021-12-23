@@ -46,6 +46,10 @@ const SYMBOL_TABLE = {
     'L☉': 3.828e26, // W
 }
 
+function lerp(x1, y1, x2, y2, x) {
+    return y1 + (x - x1) * (y2 - y1) / (x2 - x1);
+}
+
 function round_dp(x,n) {
     if (!isFinite(n))
         return x;
