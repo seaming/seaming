@@ -73,9 +73,6 @@ function update_HR_diagram() {
 
             if (x < box.x || x > box.x + box.width || y < box.y || y > box.y + box.height) return;
 
-            dot.setAttributeNS(null, 'cx', x);
-            dot.setAttributeNS(null, 'cy', y);
-
             [...body.querySelectorAll('input[data-type=number]')].forEach(x => {
                 x.disabled = false;
                 x.value = '';
