@@ -27,7 +27,9 @@ function update_HR_diagram() {
         luminosity = unit_converter('W', 'L☉')(luminosity);
         radius = unit_converter('m', 'R☉')(radius) || 1;
 
-        var x = 30.5 + Math.pow(10, (20000 - temperature) / 7700 ); // magic equation
+        var x = Math.pow((temperature - 32461.5) / -15271.5, 1/0.129729) + 30.5; // magic equation
+        if (!isFinite(x)) return;
+
         var y = lerp(...ymin, ...ymax, Math.log10(luminosity));
         var r = Math.max(5 + Math.log10(radius) * 2, 1);
 
@@ -71,7 +73,7 @@ function update_HR_diagram() {
             var x = svgP.x;
             var y = svgP.y;
 
-            if (x < box.x || x > box.x + box.width || y < box.y || y > box.y + box.height) return;
+            if (x < 30.5 || x > box.x + box.width || y < box.y || y > box.y + box.height) return;
 
             [...body.querySelectorAll('input[data-type=number]')].forEach(x => {
                 x.disabled = false;
@@ -79,7 +81,7 @@ function update_HR_diagram() {
             });
 
             var luminosity = Math.pow(10, lerp(ymin[1], ymin[0], ymax[1], ymax[0], y));
-            var temperature = 20000 - 7700 * Math.log10(x - 30.5); // magic equation
+            var temperature = -15271.5 * Math.pow(x - 30.5, 0.129729) + 32461.5; // magic equation
             
             var luminosity_input = body.querySelector('input[name=luminosity]');
             luminosity_input.disabled = false;
