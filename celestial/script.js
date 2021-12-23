@@ -9,7 +9,7 @@ const MASS = ['kg', 'M🜨', 'M☉'];
 const LENGTH = ['m', 'km', 'R🜨', 'R☉', 'AU'];
 const DURATION = ['s', 'hour', 'day', 'year'];
 const TEMPERATURE = ['K', '°C', '°F'];
-const LUMINOSITY = ['W', 'L⊙'];
+const LUMINOSITY = ['W', 'L☉'];
 const DENSITY = ['kg/m³', 'g/cm³'];
 const FREQUENCY = ['Hz', 'per hour', 'per day', 'per year'];
 const ACCELERATION = ['m/s²', 'g'];
@@ -23,7 +23,7 @@ const SYMBOL_TABLE = {
     'm': 1.0,
     'km': 1000.0,
     'R🜨': 6371000.0, // m
-    'R☉': 696340000.0, // m
+    'R☉': 695700000.0, // m
     'AU': 149597870700.0, // m
     'g/cm³': 1000.0,
     'kg/m³': 1.0,
@@ -43,7 +43,7 @@ const SYMBOL_TABLE = {
     '°C': [1.0, 273.15], // K
     '°F': [5/9, 459.67], // K
     'W': 1.0,
-    'L⊙': 3.828e26, // W
+    'L☉': 3.828e26, // W
 }
 
 function round_dp(x,n) {
@@ -128,10 +128,11 @@ function get_units(input) {
 
 function get_standard_value(input) {
     var unit = get_units(input);
+    if (input.value == undefined) return undefined;
     var raw = parse_float(input.value);
     if (isFinite(raw))
         return unit_converter(unit, dimension(unit)[0])(raw);
-    return NaN;
+    return undefined;
 }
 
 function measure_text_length(text) {
@@ -239,7 +240,8 @@ function add_primary(caller) {
     var el = document.createElement('div');
     el.classList.add('body-entry', 'primary');
 
-    el.appendChild(make_input_pair('Name', {'prepend-name': false, 'type': 'text'}));
+    var name = make_input_pair('Name', {'prepend-name': false, 'type': 'text'});
+    el.appendChild(name);
 
     var mass = make_input_pair('Mass', { units: MASS, sf: 6 });
     var radius = make_input_pair('Radius', { units: LENGTH, sf: 6 });
@@ -258,12 +260,12 @@ function add_primary(caller) {
 
     linked_pair(mass, luminosity,
         L => {
-            var Lsun = unit_converter('W', 'L⊙')(L);
+            var Lsun = unit_converter('W', 'L☉')(L);
             return unit_converter('M☉', 'kg')(Math.pow(Lsun, 1/3.5));
         },
         M => {
             var Msun = unit_converter('kg', 'M☉')(M);
-            return unit_converter('L⊙', 'W')(Math.pow(Msun, 3.5));
+            return unit_converter('L☉', 'W')(Math.pow(Msun, 3.5));
         });
 
     linked_triple(radius, temperature, luminosity,
@@ -273,7 +275,7 @@ function add_primary(caller) {
     
     computed_value(stellar_class, (L,T) => {
         if (L == undefined || T == undefined) return;
-        var Lsun = unit_converter('W', 'L⊙')(L);
+        var Lsun = unit_converter('W', 'L☉')(L);
         var c = stellar_classification(T, Lsun);
         var x = stellar_class.querySelector('input');
         x.style['background-color'] = c.color;
@@ -300,6 +302,17 @@ function add_primary(caller) {
     el.appendChild(delete_button(true));
 
     caller.parentNode.insertBefore(el, caller);
+
+    for (var field of [name, radius, luminosity, temperature]) {
+        var x = field.querySelector('input');
+        x.addEventListener('input', update_HR_diagram);
+        var unit = x.nextElementSibling;
+        if (unit != null && unit.classList.contains('units'))
+            unit.addEventListener('click', update_HR_diagram);
+
+    }
+    
+    update_HR_diagram();
 
     for (var [field, f] of primary_watchers) {
         for (var input of document.querySelectorAll('#primaries .body-entry input[name='+field+']')) {
@@ -961,17 +974,17 @@ function linked_triple(a, b, c, f_a, f_b, f_c, params) {
 var angular_sizes_warning;
 
 function compute_angular_sizes() {
-    var bodies = document.getElementsByClassName('body-entry');
-    if (bodies.length >= 2)
-        angular_sizes_warning.classList.add('hidden');
-    else {
-        angular_sizes_warning.classList.remove('hidden');
-        return;
-    }
+    // var bodies = document.getElementsByClassName('body-entry');
+    // if (bodies.length >= 2)
+    //     angular_sizes_warning.classList.add('hidden');
+    // else {
+    //     angular_sizes_warning.classList.remove('hidden');
+    //     return;
+    // }
 }
 
-window.onload = () => {
+window.addEventListener('DOMContentLoaded', () => {
     ruler = document.getElementById('ruler');
     num_primaries_warning = document.getElementById('at-least-one-primary-warning');
     angular_sizes_warning = document.getElementById('at-least-two-bodies-warning');
-};
+});

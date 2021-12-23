@@ -2,7 +2,9 @@
   <meta charset="UTF-8">
   <title>Celestial mechalculator</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="equation.css">
   <script src="stellar_classification.js"></script>
+  <script src="drawing.js"></script>
   <script src="script.js"></script>
 </head>
 
@@ -22,17 +24,73 @@
 <dl>
   <dt>Day</dt><dd>Exactly 86,400 seconds (exactly 24 hours).</dd>
   <dt>Year</dt><dd>Exactly 31,557,600 seconds (exactly 365.25 days).</dd>
+  <dt>Solar radius</dt><dd>The IAU nominal solar radius is used, defined as exactly 695,700 km.</dd>
 </dl>
 
 <div class="section-header">
   <span class="title">Parent bodies</span>
-  <span class="subtitle">The star, or stars in a multiple-star system.</span>
+  <span class="subtitle">The star, or stars in a multiple&ndash;star system.</span>
 </div>
 
 <p>
   For the purposes of calculations for secondary bodies, the primaries are treated as a single body
   with a total mass equal to the sum of the masses entered.
 </p>
+
+<dl>
+  <dt>Mass<br>Luminosity</dt><dd>
+    <p>
+      The luminosity of a star is the power radiated by the star as electromagnetic radiation,
+      and as such has the SI unit of watts (W, J s<sup>-1</sup>). Mass and luminosity are related
+      by the mass&ndash;luminosity relationship:
+    </p>
+    <span class="equation">
+      <div class="fraction"><span>L</span><span>L<sub>⊙</sub></span></div>
+      <span class="operator">=</span>
+      <span class="left-paren"></span>
+      <div class="fraction"><span>M</span><span>M<sub>⊙</sub></span></div>
+      <span class="right-paren"><sup class="symbol">a</sup></span>
+    </span>
+    <p>
+      The exponent <span class="symbol">a</span> varies with the mass and can be determined empirically.
+      This calculator uses a constant value of 3.5, and as such the values it finds are approximate only.
+    </p>
+  </dd>
+  <dt>Radius<br>Temperature</dt><dd>
+    <p>The stellar radius and temperature are related to its luminosity by the Stefan-Boltzmann law:</p>
+    <span class="equation">
+      <span>L</span>
+      <span class="operator">=</span>
+      <span>4&ThinSpace;&pi;&ThinSpace;R<sup>2</sup></span>
+      <span>&sigma;&ThinSpace;T<sup>4</sup></span>
+    </span>
+    <p>
+      This gives the total power emitted by a perfect blackbody radiator. Real stars have deviations from
+      the ideal blackbody spectrum due to absorption of certain wavelengths by chemical species in the
+      star's atmosphere. For example, helium was first detected by its absorption lines in the spectrum of
+      the Sun.
+    </p>
+  </dd>
+  <dt>Stellar class</dt><dd>
+    <object type="image/svg+xml" data="HR_diagram.svg" onload="set_diagram()" id="HR-diagram" class="float-right">HR-diagram</object>
+    <p>
+      This calculator uses the Morgan&ndash;Keenan (MK) classification system to
+      assign classes to stars. In the MK system, each star is assigned a spectral class (indicating its
+      temperature) and a luminosity class (indicating its size).
+    </p>
+    <p>
+      The spectral class uses the letters O, B, A, F, G, K, and M in order from hottest to coldest and
+      a number from 0 to 9 with 0 being the hottest and 9 the coolest. The luminosity class is a Roman
+      numeral from 0 to VII, corresponding to certain types of star of different sizes.
+    </p>
+    <p>
+      Stars can be plotted on a Hertzsprung&ndash;Russell (HR) diagram, a chart with luminosity and
+      temperature as its axes. This reveals the different types of stars and their development
+      throughout their lifetime can be plotted on the diagram. A live HR diagram showing the stars
+      you have defined below is plotted to the right.
+    </p>
+  </dd>
+</dl>
 
 <div class="body-list" id="primaries">
   <button class="add-another" onclick="add_primary(this)">Add primary</button>
