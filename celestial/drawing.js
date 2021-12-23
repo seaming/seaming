@@ -90,13 +90,11 @@ function update_HR_diagram() {
             var temperature_input = body.querySelector('input[name=surface-temperature]');
             temperature_input.disabled = false;
 
-            luminosity_input.value = format_sf(
-                unit_converter('L☉', get_units(luminosity_input))(luminosity),
-                parseFloat(luminosity_input.dataset.sf));
+            luminosity_input.value = format_sf(luminosity, parseFloat(luminosity_input.dataset.sf));
+            luminosity_input.nextElementSibling.innerText = 'L☉';
 
-            temperature_input.value = format_sf(
-                unit_converter('K', get_units(temperature_input))(temperature),
-                parseFloat(temperature_input.dataset.sf));
+            temperature_input.value = format_sf(temperature, parseFloat(temperature_input.dataset.sf));
+            temperature_input.nextElementSibling.innerText = 'K';
 
             luminosity_input.dispatchEvent(new Event('input'));
         }
