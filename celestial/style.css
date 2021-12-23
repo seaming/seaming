@@ -12,7 +12,7 @@
 body {
     --padding: 20px;
     max-width: calc(900px + 2 * var(--padding));
-    margin: 40px auto;
+    margin: 60px auto;
     padding: 0 var(--padding);
     font-family: sans-serif;
     color: var(--black);
@@ -72,7 +72,7 @@ object[data$=".svg"] {
 }
 
 .section-header {
-    margin: 2rem 0 1rem 0;
+    margin: 2rem 0;
 }
 
 .section-header .title {
@@ -210,7 +210,7 @@ input:disabled {
 }
 
 .info {
-    margin: 1rem 0 .5rem 0;
+    margin: .5rem 0;
     padding: .5rem;
     border: 1px solid var(--black);
     border-radius: var(--border-radius);

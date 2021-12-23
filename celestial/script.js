@@ -271,7 +271,7 @@ function add_primary(caller) {
             if (Lsun < 0.23 * Math.pow(0.43, 2.3))
                 return f(Math.pow(Lsun / 0.23, 1/2.3));
             else if (Lsun < 16)
-                return Math.pow(Lsun, 1/4);
+                return f(Math.pow(Lsun, 1/4));
             else if (Lsun < 176000)
                 return f(Math.pow(Lsun / 1.4, 1/3.5));
             else
@@ -281,7 +281,7 @@ function add_primary(caller) {
             var Msun = unit_converter('kg', 'M☉')(M);
             var f = unit_converter('L☉', 'W');
             if (Msun < 0.43)
-                return f(0.24 * Math.pow(Msun, 2.3));
+                return f(0.23 * Math.pow(Msun, 2.3));
             else if (Msun < 2)
                 return f(Math.pow(Msun, 4));
             else if (Msun < 55)

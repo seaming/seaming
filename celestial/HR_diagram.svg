@@ -15,6 +15,7 @@
    viewBox="0 0 230 296"
    height="296mm"
    width="230mm">
+  <style>.marker { cursor: move; } text.no-select { user-select: none; }</style>
   <defs
      id="defs2" />
   <sodipodi:namedview
@@ -507,7 +508,8 @@
        style="font-size:6.35px;line-height:1.2;font-family:sans-serif;fill:#666666;stroke-width:0.264583"
        x="107.70551"
        y="54.025135"
-       id="text1156"><tspan
+       id="text1156"
+       class="no-select"><tspan
          sodipodi:role="line"
          id="tspan1154"
          x="107.70551"
@@ -518,14 +520,16 @@
        style="font-size:6.35px;line-height:1.2;font-family:sans-serif;fill:#666666;stroke-width:0.264583"
        id="text1160"
        x="47.775829"
-       y="0"><textPath
+       y="0"
+       class="no-select"><textPath
          xlink:href="#path1178"
          id="textPath1180"
          style="text-align:start;text-anchor:start;fill:#666666">                        Bright giants (II)</textPath></text>
     <text
        xml:space="preserve"
        style="font-size:6.35px;line-height:1.2;font-family:sans-serif;fill:#666666;stroke-width:0.264583"
-       id="text1164"><textPath
+       id="text1164"
+       class="no-select"><textPath
          xlink:href="#path1183"
          id="textPath1185"><tspan
    style="fill:#666666;stroke-width:0.264583"
@@ -533,7 +537,8 @@
     <text
        xml:space="preserve"
        style="font-size:6.35px;line-height:1.2;font-family:sans-serif;fill:#666666;stroke-width:0.264583"
-       id="text1168"><textPath
+       id="text1168"
+       class="no-select"><textPath
          xlink:href="#path1188"
          id="textPath1190"><tspan
    style="fill:#666666;stroke-width:0.264583"
@@ -541,7 +546,8 @@
     <text
        xml:space="preserve"
        style="font-size:6.35px;line-height:1.2;font-family:sans-serif;letter-spacing:2.64583px;word-spacing:2.64583px;fill:#666666;stroke-width:0.264583"
-       id="text1172"><textPath
+       id="text1172"
+       class="no-select"><textPath
          xlink:href="#path1193"
          id="textPath1195"><tspan
    style="letter-spacing:2.64583px;word-spacing:2.64583px;fill:#666666;stroke-width:0.264583"
@@ -549,7 +555,8 @@
     <text
        xml:space="preserve"
        style="font-size:6.35px;line-height:1.2;font-family:sans-serif;fill:#666666;stroke-width:0.264583"
-       id="text1176"><textPath
+       id="text1176"
+       class="no-select"><textPath
          xlink:href="#path1198"
          id="textPath1200"><tspan
    style="fill:#666666;stroke-width:0.264583"
