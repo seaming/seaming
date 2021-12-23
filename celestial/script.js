@@ -258,14 +258,32 @@ function add_primary(caller) {
     fields.appendChild(luminosity);
     fields.appendChild(stellar_class);
 
+    // Mass-luminosity equation values used are those given by
+    //   https://en.wikipedia.org/wiki/Mass–luminosity_relation
     linked_pair(mass, luminosity,
         L => {
             var Lsun = unit_converter('W', 'L☉')(L);
-            return unit_converter('M☉', 'kg')(Math.pow(Lsun, 1/3.5));
+            var f = unit_converter('M☉', 'kg');
+            if (Lsun < 0.23 * Math.pow(0.43, 2.3))
+                return f(Math.pow(Lsun / 0.23, 1/2.3));
+            else if (Lsun < 16)
+                return Math.pow(Lsun, 1/4);
+            else if (Lsun < 176000)
+                return f(Math.pow(Lsun / 1.4, 1/3.5));
+            else
+                return f(Lsun / 3200);
         },
         M => {
             var Msun = unit_converter('kg', 'M☉')(M);
-            return unit_converter('L☉', 'W')(Math.pow(Msun, 3.5));
+            var f = unit_converter('L☉', 'W');
+            if (Msun < 0.43)
+                return f(0.24 * Math.pow(Msun, 2.3));
+            else if (Msun < 2)
+                return f(Math.pow(Msun, 4));
+            else if (Msun < 55)
+                return f(1.4 * Math.pow(Msun, 3.5));
+            else
+                return f(3200 * Msun);
         });
 
     linked_triple(radius, temperature, luminosity,
