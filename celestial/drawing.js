@@ -99,18 +99,6 @@ function update_HR_diagram() {
                 parseFloat(temperature_input.dataset.sf));
 
             luminosity_input.dispatchEvent(new Event('input'));
-
-            var radius = get_standard_value(body.querySelector('input[name=radius]'));
-            if (isFinite(radius)) {
-                var r = Math.max(5 + Math.log10(radius) * 2, 1);
-                dot.setAttributeNS(null, 'r', r);
-
-                if (label != undefined) {
-                    var lb = label.getBBox();
-                    label.setAttributeNS(null, 'x', x + (x-lb.x < 3*box.width/4 ? r+2 : -(r+2+lb.width)));
-                    label.setAttributeNS(null, 'y', y + lb.height / 3);
-                }
-            }
         }
 
         drag_event(dot, drag_point);
