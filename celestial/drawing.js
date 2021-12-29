@@ -307,7 +307,6 @@ function _update_spectra() {
     };
 
     let make_path = (coords, style) => {
-        coords.sort((a,b) => a[0] - b[0]);
         let path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
         path.classList.add('spectrum-graph');
         path.setAttributeNS(null, 'd', svgPath(coords));
@@ -319,6 +318,10 @@ function _update_spectra() {
 
     [xpoints, transmission] = calculate_atmospheric_transmission(xpoints.map(x => Math.pow(10,x)));
     xpoints = xpoints.map(Math.log10);
+
+    var points = xpoints.map((x,i) => [x, transmission[i]]);
+    points.sort((a,b) => a[0] - b[0]);
+    [xpoints, transmission] = [points.map(x => x[0]), points.map(x => x[1])];
 
     // Draw primary spectrum
 
@@ -437,7 +440,7 @@ var greenhouse_effect_paragraph;
 function update_greenhouse_effect_paragraph(xpoints, ys1, ys2) {
     function integrate(xs, ys) {
         return [...Array(xs.length-1).keys()].map(i =>
-            (ys[i+1] - xs[i]) * (ys[i+1] + ys[i]) / 2
+            (xs[i+1] - xs[i]) * (ys[i+1] + ys[i]) / 2
         ).reduce((acc,x) => acc+x, 0);
     }
 
