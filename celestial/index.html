@@ -3,13 +3,25 @@
   <title>Celestial mechalculator</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="equation.css">
-  <script src="stellar_classification.js"></script>
-  <script src="drawing.js"></script>
+  <script src="spectra/spectrum_oxygen.js"></script>
+  <script src="spectra/spectrum_ozone.js"></script>
+  <script src="spectra/spectrum_carbon_dioxide.js"></script>
+  <script src="spectra/spectrum_carbon_monoxide.js"></script>
+  <script src="spectra/spectrum_methane.js"></script>
+  <script src="spectra/spectrum_water_vapor.js"></script>
+  <script src="spectra/spectrum_nitrogen.js"></script>
+  <script src="spectra/spectrum_nitrous_oxide.js"></script>
+  <script src="spectra/spectrum_nitric_oxide.js"></script>
+  <script src="spectra/spectrum_nitrogen_dioxide.js"></script>
   <script src="script.js"></script>
+  <script src="stellar_classification.js"></script>
+  <script src="atmosphere.js"></script>
+  <script src="drawing.js"></script>
 </head>
 
 <body>
 
+<span id="ruler"></span>
 <h1>Celestial mechalculator</h1>
 
 <p>
@@ -69,7 +81,7 @@
     </p>
   </dd>
   <dt>Stellar class</dt><dd>
-    <object type="image/svg+xml" data="HR_diagram.svg" onload="set_diagram()" id="HR-diagram" class="float-right">HR-diagram</object>
+    <object type="image/svg+xml" data="HR_diagram.svg" onload="set_diagram()" id="HR-diagram">HR-diagram</object>
     <p>
       This calculator uses the Morgan&ndash;Keenan (MK) classification system to
       assign classes to stars. In the MK system, each star is assigned a spectral class (indicating its
@@ -115,14 +127,59 @@
   <button class="add-another" onclick="add_secondary(this)">Add child body</button>
 </div>
 
-<!-- <div class="section-header">
-  <span class="title">Angular sizes</span>
-  <span class="subtitle">Visual sizes of each body as viewed from the surface of each other.</span>
+<div class="section-header">
+  <span class="title">Atmosphere</span>
+  <span class="subtitle">Absorption spectra of a planetary atmosphere.</span>
 </div>
 
-<div class="info warning" id="at-least-two-bodies-warning">
-  You must add at least two bodies to calculate their angular sizes.</div> -->
+<div class="info alert">This calculator is computationally intensive and may cause the page to
+  slow down or freeze while it is updating.
+</div>
 
-<span id="ruler"></span>
+<div id="atmosphere" class="side-panel">
+  <div></div><div>Gas species</div><div>Partial pressure</div><div>%</div>
+  <button class="add-another">Add gas species</button>
+  <div></div><div class="total">Total</div>
+  <div class="input-pair"></div>
+  <input disabled value="100.000" name="atmosphere-percentage"></input>
+  <div class="info warning hidden" id="greater-than-100-percent-warning">The supplied percentages sum to greater than 100%!</div>
+  <datalist id="gas-species">
+    <option>Diatomic nitrogen (N&#8322;)</option>
+    <option>Diatomic oxygen (O&#8322;)</option>
+    <option>Ozone (O&#8323;)</option>
+    <option>Water vapor (H&#8322;O)</option>
+    <option>Carbon dioxide (CO&#8322;)</option>
+    <option>Carbon monoxide (CO)</option>
+    <option>Methane (CH&#8324;)</option>
+    <option>Nitrous oxide (N&#8322;O)</option>
+    <option>Nitric oxide (NO)</option>
+    <option>Nitrogen dioxide (NO&#8322;)</option>
+  </datalist>
+</div>
+
+<p>
+  Electromagnetic radiation passing through an atmosphere is filtered by gases in the atmosphere.
+  Radiation of a particular frequency is able to excite vibrations of a similar frequency in gas
+  molecules, thereby absorbing the radiation. This produces characteristic absorption spectra and
+  reduces the amount of energy reaching the ground or, in the case of thermal radiation from the planetary
+  surface, reduces the amount of energy escaping to space (the greenhouse effect).
+</p>
+
+<p>
+  In the box to the right, the composition of an atmosphere can be entered as pressures or percentages.
+  When pressures are underspecified it is assumed the given gases make up 100% of the atmosphere. Otherwise
+  the remaining percentage is assumed to be occupied by a transparent gas.
+</p>
+
+<p>
+  Use the physical and orbital properties of <select id="spectra-planet-select" onchange="update_spectra();">
+    <option value="0" selected>No secondary bodies defined</option>
+  </select>. The sum of the blackbody spectra of all primaries will be used as the
+  input spectrum.
+</p>
+
+<object type="image/svg+xml" data="spectra-graph.svg" onload="set_diagram()" id="spectra-graph">Spectra graph</object>
+
+<p id="greenhouse-effect-paragraph"></p>
 
 </body>

@@ -4,6 +4,7 @@ const VOLUME_CONST = 4.0 / 3.0 * Math.PI;
 const PI_SQ = Math.PI * Math.PI;
 const GRAVITATIONAL_CONSTANT = 6.67430e-11;
 const STEFAN_BOLTZMANN_CONSTANT = 5.670374419e-8;
+const SPEED_OF_LIGHT = 299792458;
 
 const MASS = ['kg', 'M🜨', 'M☉'];
 const LENGTH = ['m', 'km', 'R🜨', 'R☉', 'AU'];
@@ -14,6 +15,7 @@ const DENSITY = ['kg/m³', 'g/cm³'];
 const FREQUENCY = ['Hz', 'per hour', 'per day', 'per year'];
 const ACCELERATION = ['m/s²', 'g'];
 const ANGLE = ['degrees', 'radians'];
+const PRESSURE = ['Pa', 'kPa', 'bar', 'atm'];
 const DIMENSIONLESS = [];
 
 const SYMBOL_TABLE = {
@@ -44,6 +46,10 @@ const SYMBOL_TABLE = {
     '°F': [5/9, 459.67], // K
     'W': 1.0,
     'L☉': 3.828e26, // W
+    'Pa': 1,
+    'kPa': 1000.0, // Pa
+    'bar': 100000, // Pa
+    'atm': 101325, // Pa
 }
 
 function lerp(x1, y1, x2, y2, x) {
@@ -118,7 +124,7 @@ function unit_converter(a,b) {
 function dimension(unit) {
     if (unit == 'dimensionless') return ['dimensionless'];
     return [
-        MASS, LENGTH, DURATION, TEMPERATURE, LUMINOSITY,
+        MASS, LENGTH, DURATION, TEMPERATURE, LUMINOSITY, PRESSURE,
         DENSITY, FREQUENCY, ACCELERATION, ANGLE, DIMENSIONLESS
     ].find(x => x.includes(unit));
 }
@@ -144,17 +150,18 @@ function measure_text_length(text) {
     return ruler.offsetWidth;
 }
 
-function delete_button(is_primary) {
+function delete_button() {
     var button = document.createElement('span');
     button.classList.add('delete');
     button.innerText = '×';
 
     button.onclick = () => {
         button.parentNode.remove();
-        if (is_primary === true) {
+        if (button.parentElement.classList.contains('primary')) {
             num_primaries -= 1;
             check_primaries();
-        }
+        } else if (button.parentElement.classList.contains('secondary'))
+            update_spectra_select();
     }
 
     return button;
@@ -177,7 +184,7 @@ function make_input_pair(name, params) {
     input.dataset.type = params['type'] || 'number'
 
     input.name = name.toLowerCase().split('(')[0].trim().replace(' ','-');
-    if (params['prepend-name'] === false)
+    if (params['prepend-name'] === false && params['placeholder'] !== false)
         input.placeholder = name;
 
     if (typeof params['sf'] == 'number')
@@ -312,6 +319,33 @@ function add_primary(caller) {
             x.style['border'] = null;
         }
     });
+
+    var black_hole_warning = document.createElement('div');
+    black_hole_warning.classList.add('description', 'info', 'warning');
+    live_text(black_hole_warning, (n,m,r) => {
+        if (m == undefined || r == undefined) return;
+        var schwarzschild_radius = 2 * GRAVITATIONAL_CONSTANT * m / Math.pow(SPEED_OF_LIGHT, 2);
+        if (schwarzschild_radius < r) return;
+        var text = (n || 'This body') + " is too dense!";
+        text += " Its mass and radius are such that it would collapse into a black hole.";
+
+        var mi = mass.querySelector('input')
+        var mu = get_units(mi);
+        text += (" Either its mass must be less than "
+            + format_sf(unit_converter(MASS[0], mu)(r * Math.pow(SPEED_OF_LIGHT, 2) / GRAVITATIONAL_CONSTANT),
+                parseFloat(mi.dataset.sf))
+            + ' ' + mu);
+
+        var ri = radius.querySelector('input');
+        var ru = get_units(ri);
+        text += (", or its radius greater than "
+            + format_sf(unit_converter(LENGTH[0], ru)(schwarzschild_radius),
+                parseFloat(ri.dataset.sf))
+            + ' ' + ru);
+
+        return text + '.';
+    }, name, mass, radius);
+    fields.appendChild(black_hole_warning);
     
     var physical_properties = document.createElement('div');
     physical_properties.classList.add('input-row');
@@ -321,7 +355,7 @@ function add_primary(caller) {
 
     num_primaries += 1;
     check_primaries();
-    el.appendChild(delete_button(true));
+    el.appendChild(delete_button());
 
     caller.parentNode.insertBefore(el, caller);
 
@@ -335,6 +369,15 @@ function add_primary(caller) {
     }
     
     update_HR_diagram();
+
+    for (var field of [temperature]) {
+        var x = field.querySelector('input');
+        x.addEventListener('input', update_spectra);
+        var unit = x.nextElementSibling;
+        if (unit != null && unit.classList.contains('units'))
+            unit.addEventListener('click', update_spectra);
+
+    }
 
     for (var [field, f] of primary_watchers) {
         for (var input of document.querySelectorAll('#primaries .body-entry input[name='+field+']')) {
@@ -561,6 +604,10 @@ function add_secondary(caller) {
     el.appendChild(delete_button());
 
     caller.parentNode.insertBefore(el, caller);
+
+    update_spectra_select();
+    name.querySelector('input').addEventListener('input', update_spectra_select);
+    equilibrium_temperature.querySelector('input').addEventListener('input', update_spectra);
 
     compute_angular_sizes();
 }
@@ -856,9 +903,11 @@ function linked_pair(a, b, f_a, f_b, params) {
     }
 
     a.input.addEventListener('input', f);
-    a.units.addEventListener('click', f);
+    if (a.units !== undefined)
+        a.units.addEventListener('click', f);
     b.input.addEventListener('input', f);
-    b.units.addEventListener('click', f);
+    if (b.units !== undefined)
+        b.units.addEventListener('click', f);
 
     if (params !== undefined) {
         if ('watch' in params) {
