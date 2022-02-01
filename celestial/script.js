@@ -370,15 +370,6 @@ function add_primary(caller) {
     
     update_HR_diagram();
 
-    for (var field of [temperature]) {
-        var x = field.querySelector('input');
-        x.addEventListener('input', update_spectra);
-        var unit = x.nextElementSibling;
-        if (unit != null && unit.classList.contains('units'))
-            unit.addEventListener('click', update_spectra);
-
-    }
-
     for (var [field, f] of primary_watchers) {
         for (var input of document.querySelectorAll('#primaries .body-entry input[name='+field+']')) {
             input.addEventListener('input', f);
@@ -607,7 +598,6 @@ function add_secondary(caller) {
 
     update_spectra_select();
     name.querySelector('input').addEventListener('input', update_spectra_select);
-    equilibrium_temperature.querySelector('input').addEventListener('input', update_spectra);
 
     compute_angular_sizes();
 }

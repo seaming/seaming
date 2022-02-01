@@ -6,7 +6,7 @@ const PLANCK_CONSTANT = 6.62607015e-34;
 const BOLTZMANN_CONSTANT = 1.380649e-23;
 const WIENS_DISPLACEMENT_CONSTANT = 2.897771955e-3;
 
-function set_diagram(obj) {
+function set_diagram() {
     var HR_object = document.querySelector('#HR-diagram');
     HR_diagram = HR_object.contentDocument.querySelector('svg');
 
@@ -140,19 +140,19 @@ function update_spectra_select() {
         opt.innerText = body.querySelector('input[name=name]').value || 'Unnamed planet #' + (i+1);
         selector.appendChild(opt);
     });
-
-    update_spectra();
 }
 
 var update_spectra_timeout = null;
 function update_spectra() {
+    if (spectra_loading_symbol == undefined) set_diagram();
+
     spectra_loading_symbol.setAttributeNS(null, 'style', 'display:unset;');
     if (update_spectra_timeout != null)
         clearTimeout(update_spectra_timeout);
     update_spectra_timeout = setTimeout(() => {
         _update_spectra();
         spectra_loading_symbol.setAttributeNS(null, 'style', 'display:none;');
-    }, 1000);
+    }, 0);
 }
 
 function _update_spectra() {
@@ -344,7 +344,10 @@ function _update_spectra() {
     spectra_graph.appendChild(make_path(make_coords(xpoints, ypoints2, ymax), SPECTRUM_CURVE_STYLE));
 
     // Update description
-    setTimeout(update_greenhouse_effect_paragraph, 0, xpoints, ypoints, ypoints2);
+    setTimeout(update_greenhouse_effect_paragraph, 0, body_temperature, xpoints, ypoints, ypoints2);
+
+    // Notify user
+    alert('Spectra graph has been updated.')
 }
 
 function calculate_atmospheric_transmission(samples) {
@@ -437,7 +440,7 @@ function calculate_atmospheric_transmission(samples) {
 
 var greenhouse_effect_paragraph;
 
-function update_greenhouse_effect_paragraph(xpoints, ys1, ys2) {
+function update_greenhouse_effect_paragraph(T, xpoints, ys1, ys2) {
     function integrate(xs, ys) {
         return [...Array(xs.length-1).keys()].map(i =>
             (xs[i+1] - xs[i]) * (ys[i+1] + ys[i]) / 2
@@ -456,8 +459,11 @@ function update_greenhouse_effect_paragraph(xpoints, ys1, ys2) {
     if (percentage_kept == 0) {
         greenhouse_effect_paragraph.innerText = '';
     } else {
+        surface_temperature = T * Math.pow(actual_power/ideal_power, -1/4);
         greenhouse_effect_paragraph.innerText = ('Around ' + percentage_kept
-            + '% of the energy radiated from the surface is reabsorbed by the atmosphere.');
+            + '% of the energy radiated from the surface is reabsorbed by the atmosphere. '
+            + 'This results in a surface temperature of '
+            + format_sf(unit_converter('K','°C')(surface_temperature), 3) + '°C.');
     }
 }
 

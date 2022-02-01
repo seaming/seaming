@@ -52,7 +52,6 @@ function add_gas_species(e) {
         }
         delete_button.remove();
         calculate_total_pressure(undefined);
-        update_spectra();
     }
 
     self.parentNode.insertBefore(delete_button, self);
@@ -74,11 +73,9 @@ function add_gas_species(e) {
     [partial_pressure, percent].forEach(x => {
         var input = x.querySelector('input');
         input.addEventListener('input', calculate_total_pressure);
-        input.addEventListener('input', update_spectra);
         var units = input.nextElementSibling;
         if (units != null && units.classList.contains('units')) {
             units.addEventListener('click', calculate_total_pressure);
-            units.addEventListener('click', update_spectra);
         }
     });
 

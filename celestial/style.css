@@ -61,6 +61,11 @@ dt {
     white-space: nowrap;
 }
 
+body > button {
+    width: 100%;
+    margin: 1rem 20px 1rem 0;
+}
+
 sup, sub {
     vertical-align: baseline;
     position: relative;
