@@ -18,11 +18,13 @@
     }
 
     svg .coastline {
-      fill: white; stroke: black;
+      fill: white;
+      stroke: black;
     }
 
     svg .label {
       user-select: none;
+      font-variant-ligatures: no-common-ligatures;
     }
   
     .boxes {
@@ -92,7 +94,7 @@
   </div>
 
   <script src="coastlines.js" charset="UTF-8"></script>
-  <script src="locations.js" charset="UTF-8"></script>
+  <!-- <script src="locations.js" charset="UTF-8"></script> -->
   <script src="labels.js" charset="UTF-8"></script>
   <script src="https://cdn.jsdelivr.net/npm/@svgdotjs/svg.js@3.0/dist/svg.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
@@ -121,7 +123,6 @@
     let projection = d3.geoOrthographic()
       .scale(300)
       .center([0, 0])
-      .rotate([0, -30])
       .translate([width/2*0.75, height*0.98/2]);
 
     const initialScale = projection.scale();
@@ -201,15 +202,15 @@
         .attr('d', geoGenerator)
         .classed('coastline', true);
 
-    svg.selectAll('.locations')
-      .data(locations.features)
-      .enter().append('path')
-        .classed('location', true)
-        .on('click', (event, d) => {
-          sideboxTitle.innerText = d.properties.name;
-          sideboxContent.innerHTML = d.properties.description || '';
-          sidebox.classList.remove('hidden');
-        });
+    // svg.selectAll('.locations')
+    //   .data(locations.features)
+    //   .enter().append('path')
+    //     .classed('location', true)
+    //     .on('click', (event, d) => {
+    //       sideboxTitle.innerText = d.properties.name;
+    //       sideboxContent.innerHTML = d.properties.description || '';
+    //       sidebox.classList.remove('hidden');
+    //     });
 
     svg.selectAll('.labels')
         .data(labels.features)
@@ -217,7 +218,6 @@
           .attr('d', geoGenerator)
           .attr('fill', 'none')
           .attr('stroke', 'none')
-          // .attr('stroke', 'red')
           .attr("id", (d,i) => ("labelArc_"+i))
     
     svg.selectAll('.labels')
@@ -229,6 +229,8 @@
           .attr('startOffset', '50%').attr('text-anchor', 'middle')
           .attr('computedTextLength', (d,i,n) => d3.select(n[i]).node().getComputedTextLength())
           .text(d => d.properties.label)
+
+      fixLabels();
 
     // var graticule = d3.geoGraticule();
     // svg.selectAll('.graticule')
