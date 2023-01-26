@@ -23,6 +23,70 @@
 		  margin: 60px 100px;
 			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 		}
+		
+		#inventory {
+		  width: 100%;
+			display: grid;
+			align-items: end;
+		}
+
+    @media (min-width: 900px) {
+			#inventory {
+				grid-template-columns: min-content min-content;
+				grid-template-rows: 1fr auto;
+			}
+		}
+
+		@media (max-width: 900px) {
+			#inventory {
+				grid-template-columns: 1fr;
+				grid-template-rows: auto auto;
+			}
+		}
+
+		#consonant-table {
+			grid-row-end: span 2;
+		}
+		
+		.hide-me {
+			margin-top: 16px;
+		}
+		
+    .hide-me:empty {
+			display: none;
+		}
+
+    table {
+			border-collapse: collapse;
+			display: inline-block;
+	    margin: 1ex 1ex 0 0;
+		}
+
+		table.inv tr td {
+	    margin: 0px;
+	    padding: 4pt;
+	    border: 1px solid #aaa;
+		}
+
+    table.inv tr td:not(.header) {
+			word-wrap: break-word;
+      max-width: 100px;
+		}
+
+		table.inv tr td.key {
+	    font-weight: bold;
+	    font-size: 11pt;
+	    border-width: 0px;
+		}
+
+		table.inv tr td.header {
+	    font-size: 10pt;
+			white-space: nowrap;
+		}
+
+    table.inv tr:not(:first-child) td.header {
+			padding-right: 4em;
+		}
 
 		table.counter {
 		  counter-reset: rowNumber;
@@ -44,10 +108,91 @@
 		  content: "❌";
 		}
 	</style>
+
+  <script>
+	  const PLACES = ['Bilabial', 'Labio-<br>dental', 'Dental', 'Alveolar', 'Post-<br>alveolar', 'Retroflex', 'Alveolo-<br>palatal', 'Palatal', 'Velar', 'Uvular', 'Pharyngeal', 'Glottal'];
+		const MANNERS = ['Voiceless stop', 'Voiced stop', 'Implosive', 'Voiceless fricative', 'Voiced fricative', 'Voiceless affricate', 'Voiced affricate', 'Nasal', 'Approximant', 'Lateral approximant', 'Tap, flap', 'Trill'];
+		const HEIGHTS = ['High', 'Mid-high', 'Mid-low', 'Low'];
+		const BACKNESSES = ['Front', 'Central', 'Back'];
+		
+		let IPA_SYMBOLS = {
+			'Bilabial': 'p b ɓ m ʙ ɸ β',
+			'Labio-<br>dental': 'ɱ ⱱ f v ʋ',
+			'Dental': 'θ ð',
+			'Alveolar': 't d ɗ n r ᴅ ɾ ɺ s z ts dz ɬ ɮ ɹ l ɫ',
+			'Post-<br>alveolar': 'ʃ ʒ tʃ dʒ',
+			'Alveolo-<br>palatal': 'ȶ ȡ ȵ ɕ ʑ ȶɕ ȡʑ ȴ',
+			'Retroflex': 'ʈ ɖ ɳ ɽ ʂ ʐ ɻ ɭ',
+			'Palatal': 'c ɟ ʄ ɲ ç ʝ j ɥ ʎ',
+			'Velar': 'k ɡ ɠ ŋ x ɣ ɰ w ʟ',
+			'Uvular': 'q ɢ ʛ ɴ ʀ χ ʁ',
+			'Pharyngeal': 'ħ ʕ',
+			'Glottal': 'ʔ h ɦ',
+
+			'Voiceless stop': 'p t ʈ ȶ c k q ʔ',
+			'Voiced stop': 'b d ɖ ȡ ɟ ɡ ɢ',
+			'Implosive': 'ɓ ɗ ʄ ɠ ʛ',
+			'Voiceless fricative': 'ɸ f θ s ɬ ʃ ʂ ɕ ç x χ ħ h',
+			'Voiced fricative': 'β v ð z ɮ ʒ ʐ ʑ ʝ ɣ ʁ ʕ ɦ',
+			'Voiceless affricate': 'ts tʃ ȶɕ',
+			'Voiced affricate': 'dz dʒ ȡʑ',
+			'Nasal': 'm ɱ n ɳ ȵ ɲ ŋ ɴ',
+			'Approximant': 'ʋ ɹ ɻ j ɥ ɰ w',
+			'Lateral approximant': 'l ɫ ɭ ȴ ʎ ʟ',
+			'Tap, flap': 'ⱱ ᴅ ɾ ɺ ɽ',
+			'Trill': 'ʙ r ʀ',
+
+			'High': 'i ɪ y ʏ ɨ ʉ ɯ u ʊ',
+			'Mid-high': 'e ø ɘ ɵ ə ɤ o',
+			'Mid-low': 'ɛ œ ɜ ɞ ʌ ɔ',
+			'Low': 'æ a ɐ ɑ ɒ',
+
+			'Front': 'i ɪ y ʏ e ø ɛ œ æ',
+			'Central': 'ɨ ʉ ɘ ɵ ə ɜ ɞ a ɐ',
+			'Back': 'ɯ u ʊ ɤ o ʌ ɔ ɑ ɒ',
+
+      'Round': 'y ʏ ʉ u ʊ ø ɵ ɞ o œ ɔ ɒ w ɥ',
+			'Tone': '↓ ↑ ˩ ˨ ˧ ˦ ˥'
+		};
+
+    IPA_SYMBOLS = Object.fromEntries(Object.entries(IPA_SYMBOLS).map(([k,v]) => [k,v.split(' ')]));
+
+		const ALL_SYMBOLS = Object.values(IPA_SYMBOLS).flat().filter(
+				(value, index, self) => (self.indexOf(value) === index) && (value.length > 0))
+				.sort((a,b) => b.length - a.length);
+
+    function base_symbol(phoneme) {
+		  let p = phoneme.normalize('NFD').replace(/\p{Diacritic}/gu, '');
+			return ALL_SYMBOLS.find(x => p.includes(x));
+		}
+		
+		function phoneme_properties(phoneme) {
+			let base = base_symbol(phoneme);
+			let place = PLACES.find(x => IPA_SYMBOLS[x].includes(base));
+			let manner = MANNERS.find(x => IPA_SYMBOLS[x].includes(base));
+			let height = HEIGHTS.find(x => IPA_SYMBOLS[x].includes(base));
+      let backness = BACKNESSES.find(x => IPA_SYMBOLS[x].includes(base));
+			return [place, manner, height, backness];
+		}
+
+    function is_round(phoneme) {
+		  let base = base_symbol(phoneme);
+		  return IPA_SYMBOLS['Round'].includes(base) || phoneme.includes('ʷ');
+		}
+
+    function phoneme_sort(phoneme) {
+			return [is_round(phoneme) ? 0 : 1, phoneme.length];
+		}
+	</script>
 </head>
 
 <body>
-  <p id="phonemes"></p>
+  <div id="inventory">
+		<table id="consonant-table" class="inv"><tbody></tbody></table>
+		<table id="vowel-table" class="inv"><tbody></tbody></table>
+		<div id="tone-list" class="hide-me"></div>
+		<div id="other-phonemes" class="hide-me"></div>
+	</div>
 	
 	<p id="remaining-guesses">You have <b>6</b> remaining guesses.</p>
 
@@ -65,9 +210,73 @@
 
 	  let langcodes = Object.keys(DATA);
 		let secret_lang = langcodes[Math.floor(Math.random() * langcodes.length)];
-	
-	  $('#phonemes').text(DATA[secret_lang]['Phonemes'].join(' '));
+
+    let remaining_phonemes = [...DATA[secret_lang]['Phonemes']];
+
+    let places = [];
+		let manners = [];
+		let heights = [];
+		let backnesses = [];
 		
+    DATA[secret_lang]['Phonemes'].forEach(phoneme => {
+			let [place, manner, height, backness] = phoneme_properties(phoneme);
+			places.push(place);
+			manners.push(manner);
+			heights.push(height);
+			backnesses.push(backness);
+		});
+		
+	  manners = MANNERS.filter(x => manners.includes(x));
+	  places = PLACES.filter(x => places.includes(x));
+	  heights = HEIGHTS.filter(x => heights.includes(x));
+	  backnesses = BACKNESSES.filter(x => backnesses.includes(x));
+
+    $('#consonant-table tbody').append(
+			'<tr><td class="key">Consonants</td>'
+			+ places.map(x => `<td class="header">${x}</td>`).join('')
+			+ '</tr>');
+
+		manners.forEach(manner => {
+			$('#consonant-table tbody').append(`<tr><td class="header">${manner}</td></tr>`);
+			let row = $('#consonant-table tr:last-of-type');
+			places.forEach(place => {
+			  let phonemes = DATA[secret_lang]['Phonemes'].filter((x, i, self) => {
+					let [p, m, ...rest] = phoneme_properties(x);
+					return p == place && m == manner && self.indexOf(x) == i;
+				}).sort((a,b) => phoneme_sort(a) > phoneme_sort(b));
+				remaining_phonemes = remaining_phonemes.filter(x => !phonemes.includes(x));
+				row.append(`<td>${phonemes.join(' ')}</td>`);
+			})
+		});
+
+    $('#vowel-table tbody').append(
+			'<tr><td class="key">Vowels</td>'
+			+ backnesses.map(x => `<td class="header">${x}</td>`).join('')
+			+ '</tr>');
+
+		heights.forEach(height => {
+			$('#vowel-table tbody').append(`<tr><td class="header">${height}</td></tr>`);
+			let row = $('#vowel-table tr:last-of-type');
+			backnesses.forEach(backness => {
+			  let phonemes = DATA[secret_lang]['Phonemes'].filter((x, i, self) => {
+					let [p, m, h, b] = phoneme_properties(x);
+					return h == height && b == backness && self.indexOf(x) == i;
+				}).sort((a,b) => phoneme_sort(a) > phoneme_sort(b));
+				remaining_phonemes = remaining_phonemes.filter(x => !phonemes.includes(x));
+				row.append(`<td>${phonemes.join(' ')}</td>`);
+			})
+		});
+
+    let tones = remaining_phonemes.filter(p => [...p].every(x => IPA_SYMBOLS['Tone'].includes(x)))
+			.sort((a,b) => a.length - b.length)
+		if (tones.length > 0)
+			$('#tone-list').html('<b style="font-size:11pt;">Tonemes</b>:&ensp;' + tones.join('&ensp;'));
+
+    remaining_phonemes = remaining_phonemes.filter(x => !tones.includes(x));
+		if (remaining_phonemes.length > 0)
+			$('#other-phonemes').html('<b style="font-size:11pt;">Other phonemes</b>: '
+			                          + remaining_phonemes.join(' '));
+
     let datalist = $('datalist#languages');
 		Object.keys(DATA).forEach(k => {
 			datalist.append(`<option value="${DATA[k]['Name']} (${DATA[k]['Family_Name']})" data-value="${k}">`);
