@@ -47,7 +47,6 @@
 </head>
 
 <body>
-
   <p id="phonemes"></p>
 	
 	<p id="remaining-guesses">You have <b>6</b> remaining guesses.</p>
@@ -93,7 +92,7 @@
 						} else last_row.addClass('incorrect');
 				
 						if (remaining_guesses > 0)
-							$('#remaining-guesses').html(`You have <b>${remaining_guesses}</b> remaining guesses.`);
+							$('#remaining-guesses').html(`You have <b>${remaining_guesses}</b> remaining guess${remaining_guesses > 1 ? 'es' : ''}.`);
 						else {
 						  $('#remaining-guesses').html(`You have run out of guesses! The secret language was <b>${DATA[secret_lang]['Name']}</b> (${DATA[secret_lang]['Family_Name']}).`);
 						  $('#guess-input').prop('disabled', true)
