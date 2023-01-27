@@ -112,6 +112,9 @@
     table.counter td {
 			padding-right: 1em;
 		}
+		
+		.performance-report {
+		}
 	</style>
 
   <script>
@@ -340,8 +343,8 @@
 
     function color_heat(heat) {
 		  console.log(heat);
-			if (heat > .5) return _interpolateColor('#fff8fb', '#ff3800', (heat-.5)/.5);
-      else return _interpolateColor('#9fbfff', '#fff8fb', heat/.5);
+			if (heat > .75) return _interpolateColor('#fff8fb', '#ff3800', (heat-.75)/.25);
+      else return _interpolateColor('#9fbfff', '#fff8fb', (heat-.25)/(.75-.25));
 		}
 
     let previous_heat = null;
@@ -357,7 +360,7 @@
 						let report = categorise_heat(previous_heat, heat);
 						previous_heat = heat;
 						
-						$('#guess-list').append(`<tr><td>${language_name(code)}</td><td><b>${report}</b></td></tr>`);
+						$('#guess-list').append(`<tr><td>${language_name(code)}</td><td><span class="performance-report">${report}</span></td></tr>`);
 						let last_row = $('#guess-list tr:last-child');
 
             if (code == secret_lang) {
