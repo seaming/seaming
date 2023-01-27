@@ -15,6 +15,7 @@
    crossorigin="anonymous"></script>
 
   <script src="data.js"></script>
+  <script src="color.js"></script>
 
   <title>Phoidle | seaming</title>
 
@@ -111,11 +112,6 @@
     table.counter td {
 			padding-right: 1em;
 		}
-
-    .hot { color: #d64933; }
-    .warm { color: #f7955c; }
-		.cool { color: #7dd4ff; }
-		.cold { color: #3384d6; }
 	</style>
 
   <script>
@@ -322,16 +318,33 @@
 		}
 
     function categorise_heat(previous_heat, next_heat) {
+		  if (previous_heat == null) previous_heat = next_heat;
 		  let change = Math.abs(next_heat - previous_heat);
 			let temperature = next_heat > 0.95 ? "hot" : next_heat > 0.75 ? "warm" : next_heat > 0.5 ? "cool" : "cold" ;
       let movement = change > 0.75 ? "much" : change > 0.25 ? "getting" : "";
       let t = (temperature == "hot" ? "hott" : temperature) + "er";
+			let s;
 			if (previous_heat != 0 && movement.length > 0)
-				return `<span class=${temperature}>${movement} ${t}</span>`;
-			else return `<span class=${temperature}>${temperature}</span>`;
+				s = `${movement} ${t}`;
+			else s = temperature;
+
+      let n = 0;
+			let N = [...s].filter(c => !/\s+/.test(c)).length - 1;
+			return [...s].map(c => {
+				if (/\s+/.test(c)) return c;
+				let color = color_heat(n/N * (next_heat-previous_heat) + previous_heat);
+				n += 1;
+				return `<span style="color:${color};">${c}</span>`;
+			}).join('');
 		}
 
-    let previous_heat = 0;
+    function color_heat(heat) {
+		  console.log(heat);
+			if (heat > .5) return _interpolateColor('#fff8fb', '#ff3800', (heat-.5)/.5);
+      else return _interpolateColor('#9fbfff', '#fff8fb', heat/.5);
+		}
+
+    let previous_heat = null;
 		$('#guess-input').keypress((event) => {
 		    if (event.keyCode == 13 || event.which == 13) {
 				    let name = $('#guess-input').val();
@@ -344,7 +357,7 @@
 						let report = categorise_heat(previous_heat, heat);
 						previous_heat = heat;
 						
-						$('#guess-list').append(`<tr><td>${language_name(code)}</td><td>${report}</td></tr>`);
+						$('#guess-list').append(`<tr><td>${language_name(code)}</td><td><b>${report}</b></td></tr>`);
 						let last_row = $('#guess-list tr:last-child');
 
             if (code == secret_lang) {
