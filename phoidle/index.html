@@ -90,12 +90,12 @@
 
 		table.counter {
 		  counter-reset: rowNumber;
-			border-spacing: 1.5ex .5ex;
+			margin: 0
 		}
 
 		table.counter tr::before {
 		  display: table-cell;
-		  padding-right: 0.3em;
+		  padding-right: 1em;
 		  text-align: right;
 			vertical-align: middle;
 		}
@@ -106,6 +106,10 @@
 		
 		table.counter tr.incorrect::before {
 		  content: "❌";
+		}
+
+    table.counter td {
+			padding-right: 1em;
 		}
 	</style>
 
@@ -281,7 +285,33 @@
 		Object.keys(DATA).forEach(k => {
 			datalist.append(`<option value="${DATA[k]['Name']} (${DATA[k]['Family_Name']})" data-value="${k}">`);
 		});
+		
+		function distance(lat1, lon1, lat2, lon2) {
+			const EARTH_RADIUS = 6371;
+			return Math.acos(Math.sin(lat1) * Math.sin(lat2)
+			  + Math.cos(lat1) * Math.cos(lat2) * Math.cos(lon1-lon2));
+		}
+		
+		function calculate_heat(guess) {
+			let options = [...Object.keys(DATA)];
 
+			if (DATA[guess]['Macroarea'] == DATA[secret_lang]['Macroarea'])
+			  options = options.filter(x => DATA[x]['Macroarea'] == DATA[secret_lang]['Macroarea']);
+
+			if (DATA[guess]['Family_Name'] == DATA[secret_lang]['Family_Name'])
+			  options = options.filter(x => DATA[x]['Family_Name'] == DATA[secret_lang]['Family_Name']);
+
+      let dist = distance(DATA[guess]['Latitude'], DATA[guess]['Longitude'],
+			  DATA[secret_lang]['Latitude'], DATA[secret_lang]['Longitude']);
+			options = options.filter(x => distance(DATA[guess]['Latitude'],
+			                                       DATA[guess]['Longitude'],
+			                                       DATA[x]['Latitude'],
+																						 DATA[x]['Longitude']) <= dist)
+      
+			return 1 - options.length / Object.keys(DATA).length;
+		}
+
+    let previous_heat = 0;
 		$('#guess-input').keypress((event) => {
 		    if (event.keyCode == 13 || event.which == 13) {
 				    let name = $('#guess-input').val();
@@ -289,8 +319,12 @@
 						$('#guess-input').val('');
 
 						remaining_guesses -= 1;
+
+            let heat = calculate_heat(code);
+						let heat_change = heat - previous_heat;
+						previous_heat = heat;
 						
-						$('#guess-list').append(`<tr><td><b>${DATA[code]['Name']}</b></td><td>(${DATA[code]['Family_Name']})</td></tr>`);
+						$('#guess-list').append(`<tr><td><b>${DATA[code]['Name']}</b> (${DATA[code]['Family_Name']})</td><td>${heat_change}</td></tr>`);
 						let last_row = $('#guess-list tr:last-child');
 
             if (code == secret_lang) {
