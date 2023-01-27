@@ -21,6 +21,6 @@ glottolog = glottolog.merge(families, left_on='ID', right_on='ID')
 (phoible
  .merge(glottolog, left_on='Glottocode', right_on='ID')[
      ['Phonemes', 'ID', 'Name', 'Family_Name',
-      'Macroarea', 'Latitude', 'Longitude']]
+      'Macroarea', 'Countries', 'Latitude', 'Longitude']]
  .set_index('ID')
  .to_json('data.json', orient='index'))
