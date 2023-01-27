@@ -192,8 +192,11 @@
 			return [is_round(phoneme) ? 0 : 1, phoneme.length];
 		}
 
+		const country_name = new Intl.DisplayNames(['en'], {type: 'region'});
+
     function language_name(code) {
-		  return `<b>${DATA[code]['Name']}</b> (${DATA[code]['Family_Name']}; ${DATA[code]['Countries']})`
+		  let countries = (DATA[code]['Countries'] || '').split(';').map(x => country_name.of(x)).join(', ');
+		  return `<b>${DATA[code]['Name']}</b> (${DATA[code]['Family_Name']}; ${countries})`
 		}
 	</script>
 </head>
@@ -320,6 +323,12 @@
 			return 1 - options.length / Object.keys(DATA).length;
 		}
 
+    const MAX_HEAT = 1 - 1 / Object.keys(DATA).length;
+	
+		function ease(x) {
+			return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+		}
+
     function categorise_heat(previous_heat, next_heat) {
 		  if (previous_heat == null) previous_heat = next_heat;
 		  let change = Math.abs(next_heat - previous_heat);
@@ -330,21 +339,25 @@
 			if (previous_heat != 0 && movement.length > 0)
 				s = `${movement} ${t}`;
 			else s = temperature;
+			if (next_heat >= MAX_HEAT) {
+			  previous_heat = next_heat;
+				s = "on fire!"
+			};
 
       let n = 0;
 			let N = [...s].filter(c => !/\s+/.test(c)).length - 1;
 			return [...s].map(c => {
 				if (/\s+/.test(c)) return c;
-				let color = color_heat(n/N * (next_heat-previous_heat) + previous_heat);
+				let color = color_heat(ease(n/N) * (next_heat-previous_heat) + previous_heat);
 				n += 1;
 				return `<span style="color:${color};">${c}</span>`;
 			}).join('');
 		}
 
     function color_heat(heat) {
-		  console.log(heat);
 			if (heat > .75) return _interpolateColor('#fff8fb', '#ff3800', (heat-.75)/.25);
-      else return _interpolateColor('#9fbfff', '#fff8fb', (heat-.25)/(.75-.25));
+      else if (heat > .25) return _interpolateColor('#9fbfff', '#fff8fb', (heat-.25)/(.75-.25));
+			else return '#9fbfff';
 		}
 
     let previous_heat = null;
