@@ -196,7 +196,9 @@
 
     function language_name(code) {
 		  let countries = (DATA[code]['Countries'] || '').split(';').map(x => country_name.of(x)).join(', ');
-		  return `<b>${DATA[code]['Name']}</b> (${DATA[code]['Family_Name']}; ${countries})`
+		  let s = `<b>${DATA[code]['Name']}</b> (${DATA[code]['Family_Name']}`;
+			if (countries.length > 0) s += `; ${countries}`;
+			return s + ')';
 		}
 	</script>
 </head>
