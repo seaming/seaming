@@ -335,7 +335,7 @@
     function categorise_heat(previous_heat, next_heat) {
 		  if (previous_heat == null) previous_heat = next_heat;
 		  let change = Math.abs(next_heat - previous_heat);
-			let temperature = next_heat > 0.95 ? "hot" : next_heat > 0.75 ? "warm" : next_heat > 0.5 ? "cool" : "cold" ;
+			let temperature = next_heat > 0.99 ? "hot" : next_heat > 0.75 ? "warm" : next_heat > 0.5 ? "cool" : "cold" ;
       let movement = change > 0.75 ? "much" : change > 0.25 ? "getting" : "";
       let t = (temperature == "hot" ? "hott" : temperature) + "er";
 			let s;
@@ -358,9 +358,9 @@
 		}
 
     function color_heat(heat) {
-			if (heat > .75) return _interpolateColor('#fff8fb', '#ff3800', (heat-.75)/.25);
-      else if (heat > .25) return _interpolateColor('#9fbfff', '#fff8fb', (heat-.25)/(.75-.25));
-			else return '#9fbfff';
+			if (heat > .75) return _interpolateColor('#aaaaaa', '#ff3800', (heat-.75)/.25);
+      else if (heat > .25) return _interpolateColor('#4785ff', '#aaaaaa', (heat-.25)/(.75-.25));
+			else return '#4785ff';
 		}
 
     let previous_heat = null;
